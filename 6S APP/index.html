@@ -1,0 +1,3395 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SIXIÈME SENS — 6S</title>
+    <meta name="description" content="L'Intelligence Anticipative de Vie">
+    <meta name="theme-color" content="#0a0a1a">
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ============================================
+           CSS VARIABLES & ROOT
+           ============================================ */
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #111128;
+            --bg-card: #1a1a3e;
+            --bg-card-hover: #222255;
+            --bg-glass: rgba(26, 26, 62, 0.7);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0cc;
+            --text-muted: #6a6a99;
+            --accent-purple: #7c3aed;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-orange: #f97316;
+            --accent-red: #ef4444;
+            --accent-pink: #ec4899;
+            --gradient-main: linear-gradient(135deg, #7c3aed, #3b82f6, #06b6d4);
+            --gradient-warm: linear-gradient(135deg, #f97316, #ef4444, #ec4899);
+            --gradient-cool: linear-gradient(135deg, #06b6d4, #3b82f6, #7c3aed);
+            --gradient-success: linear-gradient(135deg, #10b981, #06b6d4);
+            --gradient-card: linear-gradient(145deg, rgba(124,58,237,0.1), rgba(59,130,246,0.05));
+            --shadow-glow: 0 0 30px rgba(124, 58, 237, 0.3);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --border-subtle: 1px solid rgba(124, 58, 237, 0.2);
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+            --nav-height: 70px;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============================================
+           SPLASH SCREEN
+           ============================================ */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .splash-screen.hidden {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+
+        .splash-logo {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .splash-eye {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .splash-eye .eye-outer {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .splash-eye .eye-inner {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .splash-eye .eye-pupil {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--gradient-main);
+            animation: pupil-move 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 30px rgba(124,58,237,0.4); }
+            50% { box-shadow: 0 0 60px rgba(124,58,237,0.8), 0 0 100px rgba(59,130,246,0.4); }
+        }
+
+        @keyframes pupil-move {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(3px, -2px); }
+            50% { transform: translate(-2px, 3px); }
+            75% { transform: translate(2px, 2px); }
+        }
+
+        .splash-title {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 3px;
+        }
+
+        .splash-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .splash-loader {
+            margin-top: 40px;
+            width: 200px;
+            height: 3px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .splash-loader-bar {
+            height: 100%;
+            background: var(--gradient-main);
+            border-radius: 10px;
+            animation: loading 2.5s ease-in-out forwards;
+        }
+
+        @keyframes loading {
+            0% { width: 0%; }
+            30% { width: 40%; }
+            60% { width: 70%; }
+            90% { width: 90%; }
+            100% { width: 100%; }
+        }
+
+        /* ============================================
+           ONBOARDING SCREEN
+           ============================================ */
+        .onboarding {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 9000;
+            display: none;
+            flex-direction: column;
+        }
+
+        .onboarding.active {
+            display: flex;
+        }
+
+        .onboarding-slides {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .onboarding-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 30px;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        .onboarding-slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .onboarding-slide.left {
+            transform: translateX(-100%);
+        }
+
+        .onboarding-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .onboarding-slide h2 {
+            font-size: 26px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 16px;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .onboarding-slide p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.6;
+            max-width: 320px;
+        }
+
+        .onboarding-dots {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .onboarding-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            transition: all 0.3s ease;
+        }
+
+        .onboarding-dot.active {
+            width: 24px;
+            border-radius: 4px;
+            background: var(--gradient-main);
+        }
+
+        .onboarding-actions {
+            padding: 20px 30px;
+            padding-bottom: calc(20px + var(--safe-bottom));
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-onboard {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-skip {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+        }
+
+        .btn-next {
+            background: var(--gradient-main);
+            color: white;
+            box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(124,58,237,0.6);
+        }
+
+        /* ============================================
+           SETUP SCREEN
+           ============================================ */
+        .setup-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 8500;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .setup-screen.active {
+            display: flex;
+        }
+
+        .setup-header {
+            padding: 60px 24px 20px;
+            text-align: center;
+        }
+
+        .setup-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .setup-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .setup-form {
+            padding: 20px 24px;
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border: var(--border-subtle);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
+        }
+
+        .form-group select option {
+            background: var(--bg-secondary);
+        }
+
+        .contact-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .contact-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .contact-row input {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg-card);
+            border: var(--border-subtle);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+        }
+
+        .btn-launch {
+            width: 100%;
+            padding: 18px;
+            background: var(--gradient-main);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-bottom: calc(20px + var(--safe-bottom));
+            box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-launch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(124,58,237,0.6);
+        }
+
+        /* ============================================
+           MAIN APP CONTAINER
+           ============================================ */
+        .app-container {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: calc(var(--nav-height) + var(--safe-bottom));
+        }
+
+        .app-container.active {
+            display: flex;
+        }
+
+        /* ============================================
+           TOP BAR
+           ============================================ */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: calc(var(--safe-top) + 10px) 20px 12px;
+            background: rgba(10, 10, 26, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .top-bar-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .top-bar-title {
+            font-size: 18px;
+            font-weight: 700;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .top-bar-badge {
+            font-size: 10px;
+            background: var(--bg-card);
+            color: var(--accent-cyan);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .notif-btn {
+            position: relative;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .avatar-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-cool);
+            border: 2px solid rgba(124,58,237,0.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* ============================================
+           PAGES
+           ============================================ */
+        .page {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           HOME PAGE
+           ============================================ */
+        .greeting {
+            margin-bottom: 24px;
+        }
+
+        .greeting h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .greeting p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Life Score Card */
+        .life-score-card {
+            background: var(--gradient-card);
+            border: var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .life-score-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .score-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .score-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .score-circle {
+            position: relative;
+            width: 160px;
+            height: 160px;
+        }
+
+        .score-circle svg {
+            transform: rotate(-90deg);
+            width: 160px;
+            height: 160px;
+        }
+
+        .score-circle .bg-ring {
+            fill: none;
+            stroke: var(--bg-card);
+            stroke-width: 8;
+        }
+
+        .score-circle .score-ring {
+            fill: none;
+            stroke: url(#scoreGradient);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 440;
+            stroke-dashoffset: 440;
+            transition: stroke-dashoffset 2s ease;
+        }
+
+        .score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .score-value .number {
+            font-size: 42px;
+            font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .score-value .label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .score-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .score-item {
+            text-align: center;
+            padding: 10px 4px;
+            background: rgba(124,58,237,0.08);
+            border-radius: var(--radius-sm);
+        }
+
+        .score-item .icon {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .score-item .name {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .score-item .val {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-header .see-all {
+            font-size: 13px;
+            color: var(--accent-purple);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Alert Cards */
+        .alerts-section {
+            margin-bottom: 24px;
+        }
+
+        .alert-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            border-left: 4px solid;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .alert-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateX(4px);
+        }
+
+        .alert-card.red { border-color: var(--accent-red); }
+        .alert-card.yellow { border-color: var(--accent-yellow); }
+        .alert-card.green { border-color: var(--accent-green); }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .alert-card.red .alert-icon { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+        .alert-card.yellow .alert-icon { background: rgba(245,158,11,0.15); color: var(--accent-yellow); }
+        .alert-card.green .alert-icon { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-content h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .alert-content p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .alert-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .alert-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .alert-btn.primary {
+            background: var(--gradient-main);
+            color: white;
+        }
+
+        .alert-btn.secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+
+        /* Actions Timeline */
+        .actions-section {
+            margin-bottom: 24px;
+        }
+
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(124,58,237,0.08);
+        }
+
+        .action-time {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            width: 50px;
+            flex-shrink: 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .action-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--gradient-main);
+            flex-shrink: 0;
+        }
+
+        .action-dot.done {
+            background: var(--accent-green);
+        }
+
+        .action-text {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .action-text .source {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .action-check {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .action-check.checked {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+            font-size: 12px;
+        }
+
+        /* Ghost Admin Summary */
+        .ghost-summary {
+            background: var(--gradient-card);
+            border: var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ghost-summary:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .ghost-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(124,58,237,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .ghost-info {
+            flex: 1;
+        }
+
+        .ghost-info h3 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .ghost-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .ghost-badge {
+            padding: 4px 12px;
+            background: var(--accent-purple);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* ============================================
+           COGNITIVE SHIELD PAGE
+           ============================================ */
+        .shield-status {
+            background: var(--gradient-card);
+            border: var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .shield-icon-large {
+            font-size: 60px;
+            margin-bottom: 16px;
+        }
+
+        .shield-status h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .attention-bar {
+            margin: 20px 0;
+        }
+
+        .attention-bar .bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .attention-bar .bar-track {
+            height: 12px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .attention-bar .bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: var(--gradient-success);
+            transition: width 1.5s ease;
+        }
+
+        .shield-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .shield-stat {
+            padding: 12px;
+            background: rgba(124,58,237,0.08);
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+
+        .shield-stat .s-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .shield-stat .s-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Cognitive Modes */
+        .mode-cards {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .mode-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: var(--border-subtle);
+        }
+
+        .mode-card:hover, .mode-card.active-mode {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-purple);
+        }
+
+        .mode-card.active-mode {
+            box-shadow: 0 0 20px rgba(124,58,237,0.2);
+        }
+
+        .mode-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .mode-info {
+            flex: 1;
+        }
+
+        .mode-info h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .mode-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .mode-toggle {
+            width: 48px;
+            height: 28px;
+            background: var(--bg-secondary);
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .mode-toggle.on {
+            background: var(--accent-purple);
+        }
+
+        .mode-toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .mode-toggle.on::after {
+            transform: translateX(20px);
+        }
+
+        /* Deepfake Checker */
+        .checker-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            text-align: center;
+            border: 1px dashed rgba(124,58,237,0.3);
+        }
+
+        .checker-card i {
+            font-size: 40px;
+            color: var(--accent-purple);
+            margin-bottom: 12px;
+        }
+
+        .checker-card h3 {
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .checker-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .checker-btn {
+            padding: 12px 24px;
+            background: var(--gradient-main);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* ============================================
+           PREDICTIONS PAGE
+           ============================================ */
+        .predictions-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .pred-tab {
+            padding: 10px 18px;
+            background: var(--bg-card);
+            border: var(--border-subtle);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .pred-tab.active {
+            background: var(--gradient-main);
+            color: white;
+            border-color: transparent;
+        }
+
+        .prediction-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: var(--border-subtle);
+        }
+
+        .pred-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .pred-type {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .pred-type.health { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+        .pred-type.finance { background: rgba(245,158,11,0.15); color: var(--accent-yellow); }
+        .pred-type.social { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+        .pred-type.cognitive { background: rgba(124,58,237,0.15); color: var(--accent-purple); }
+
+        .pred-confidence {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .pred-confidence strong {
+            color: var(--accent-cyan);
+        }
+
+        .prediction-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .prediction-card .pred-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+
+        .pred-timeline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .pred-timeline i {
+            color: var(--accent-cyan);
+        }
+
+        .pred-chart {
+            height: 80px;
+            background: rgba(124,58,237,0.05);
+            border-radius: 8px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: flex-end;
+            padding: 8px;
+            gap: 4px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+            transition: height 1s ease;
+        }
+
+        /* ============================================
+           SOCIAL RADAR PAGE
+           ============================================ */
+        .radar-visual {
+            text-align: center;
+            margin-bottom: 24px;
+            padding: 20px;
+        }
+
+        .radar-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto;
+        }
+
+        .radar-rings {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .radar-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(124,58,237,0.15);
+        }
+
+        .radar-ring:nth-child(1) {
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .radar-ring:nth-child(2) {
+            width: 70%;
+            height: 70%;
+            top: 15%;
+            left: 15%;
+        }
+
+        .radar-ring:nth-child(3) {
+            width: 40%;
+            height: 40%;
+            top: 30%;
+            left: 30%;
+        }
+
+        .radar-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 0 0 20px rgba(124,58,237,0.5);
+            z-index: 2;
+        }
+
+        .radar-contact {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 2;
+            border: 2px solid;
+        }
+
+        .radar-contact:hover {
+            transform: scale(1.2);
+        }
+
+        .radar-contact.healthy {
+            background: rgba(16,185,129,0.2);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .radar-contact.warning {
+            background: rgba(245,158,11,0.2);
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+        }
+
+        .radar-contact.danger {
+            background: rgba(239,68,68,0.2);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+            animation: pulse-contact 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-contact {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+        }
+
+        .contact-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: var(--border-subtle);
+            transition: all 0.3s ease;
+        }
+
+        .contact-card:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .contact-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-info h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .contact-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .contact-status {
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .contact-status.good { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+        .contact-status.watch { background: rgba(245,158,11,0.15); color: var(--accent-yellow); }
+        .contact-status.alert { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+
+        .contact-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .contact-action-btn {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ============================================
+           GHOST ADMIN PAGE
+           ============================================ */
+        .ghost-quota {
+            background: var(--gradient-card);
+            border: var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .quota-visual {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .quota-slot {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .quota-slot.used {
+            background: rgba(124,58,237,0.2);
+            border: 2px solid var(--accent-purple);
+        }
+
+        .quota-slot.available {
+            background: rgba(16,185,129,0.2);
+            border: 2px solid var(--accent-green);
+        }
+
+        .ghost-task {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            margin-bottom: 12px;
+            border: var(--border-subtle);
+        }
+
+        .ghost-task-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .ghost-task-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .ghost-task-status {
+            margin-left: auto;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .task-completed { background: rgba(16,185,129,0.15); color: var(--accent-green); }
+        .task-progress { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+        .task-pending { background: rgba(245,158,11,0.15); color: var(--accent-yellow); }
+
+        .ghost-task h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .ghost-task p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .ghost-savings {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(16,185,129,0.08);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .ghost-savings i {
+            color: var(--accent-green);
+        }
+
+        .upgrade-banner {
+            background: var(--gradient-main);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .upgrade-banner h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .upgrade-banner p {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+
+        .upgrade-btn {
+            padding: 12px 30px;
+            background: white;
+            color: var(--accent-purple);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* ============================================
+           SETTINGS PAGE
+           ============================================ */
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .settings-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .settings-item:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .settings-item i {
+            width: 24px;
+            text-align: center;
+            color: var(--accent-purple);
+        }
+
+        .settings-item span {
+            flex: 1;
+            font-size: 15px;
+        }
+
+        .settings-item .chevron {
+            color: var(--text-muted);
+        }
+
+        .plan-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--gradient-card);
+            border: var(--border-subtle);
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+        }
+
+        /* ============================================
+           NOTIFICATION PANEL
+           ============================================ */
+        .notif-panel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            background: var(--bg-secondary);
+            z-index: 9500;
+            transition: right 0.4s ease;
+            overflow-y: auto;
+        }
+
+        .notif-panel.open {
+            right: 0;
+        }
+
+        .notif-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9400;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .notif-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .notif-panel-header {
+            padding: 60px 20px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
+        }
+
+        .notif-panel-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .notif-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .notif-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(124,58,237,0.05);
+            display: flex;
+            gap: 12px;
+        }
+
+        .notif-item.unread {
+            background: rgba(124,58,237,0.05);
+        }
+
+        .notif-dot-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .notif-dot-indicator.purple { background: var(--accent-purple); }
+        .notif-dot-indicator.green { background: var(--accent-green); }
+        .notif-dot-indicator.red { background: var(--accent-red); }
+
+        .notif-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .notif-content p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .notif-content .time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ============================================
+           DETAIL MODAL
+           ============================================ */
+        .detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 9600;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .detail-modal.open {
+            display: flex;
+        }
+
+        .modal-header {
+            padding: 60px 20px 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
+        }
+
+        .modal-back {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .modal-body {
+            padding: 20px;
+            flex: 1;
+        }
+
+        /* ============================================
+           BOTTOM NAVIGATION
+           ============================================ */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: calc(var(--nav-height) + var(--safe-bottom));
+            padding-bottom: var(--safe-bottom);
+            background: rgba(17, 17, 40, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            border-top: 1px solid rgba(124,58,237,0.15);
+            z-index: 200;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-width: 60px;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-item.active i {
+            color: var(--accent-purple);
+        }
+
+        .nav-item.active span {
+            color: var(--accent-purple);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 3px;
+            background: var(--gradient-main);
+            border-radius: 0 0 3px 3px;
+        }
+
+        /* ============================================
+           ANIMATIONS
+           ============================================ */
+        .animate-in {
+            animation: slideUp 0.5s ease forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        .stagger-5 { animation-delay: 0.5s; }
+
+        /* Shimmer effect */
+        .shimmer {
+            background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (min-width: 768px) {
+            .app-container {
+                max-width: 480px;
+                margin: 0 auto;
+            }
+
+            .bottom-nav {
+                max-width: 480px;
+                left: 50%;
+                transform: translateX(-50%);
+                border-radius: 20px 20px 0 0;
+            }
+
+            .top-bar {
+                max-width: 480px;
+                margin: 0 auto;
+                left: 0;
+                right: 0;
+            }
+        }
+
+        /* ============================================
+           SCROLLBAR
+           ============================================ */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-purple);
+            border-radius: 2px;
+        }
+
+        /* ============================================
+           PITCH DECK PAGE
+           ============================================ */
+        .pitch-section {
+            margin-bottom: 30px;
+        }
+
+        .pitch-section h2 {
+            font-size: 22px;
+            font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .pitch-card {
+            background: var(--bg-card);
+            border: var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+
+        .pitch-stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .pitch-stat {
+            background: rgba(124,58,237,0.08);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .pitch-stat .big-num {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .pitch-stat .big-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================
+         SVG DEFINITIONS
+         ============================================ -->
+    <svg style="position:absolute;width:0;height:0">
+        <defs>
+            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#7c3aed"/>
+                <stop offset="50%" style="stop-color:#3b82f6"/>
+                <stop offset="100%" style="stop-color:#06b6d4"/>
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <!-- ============================================
+         SPLASH SCREEN
+         ============================================ -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-logo">
+            <div class="splash-eye">
+                <div class="eye-outer">
+                    <div class="eye-inner">
+                        <div class="eye-pupil"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="splash-title">SIXIÈME SENS</div>
+        <div class="splash-subtitle">Intelligence Anticipative</div>
+        <div class="splash-loader">
+            <div class="splash-loader-bar"></div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         ONBOARDING
+         ============================================ -->
+    <div class="onboarding" id="onboarding">
+        <div class="onboarding-slides">
+            <div class="onboarding-slide active" data-slide="0">
+                <div class="onboarding-icon">🧠</div>
+                <h2>Développez votre Sixième Sens</h2>
+                <p>L'IA qui anticipe vos problèmes avant qu'ils n'arrivent et vous dit quand agir pour un résultat optimal.</p>
+            </div>
+            <div class="onboarding-slide" data-slide="1">
+                <div class="onboarding-icon">⚡</div>
+                <h2>3 Alertes Prédictives / Jour</h2>
+                <p>Santé, finance, relations... Recevez des prédictions personnalisées basées sur vos données et habitudes.</p>
+            </div>
+            <div class="onboarding-slide" data-slide="2">
+                <div class="onboarding-icon">🛡️</div>
+                <h2>Bouclier Cognitif</h2>
+                <p>Protégez votre attention, détectez les deepfakes et la désinformation en temps réel.</p>
+            </div>
+            <div class="onboarding-slide" data-slide="3">
+                <div class="onboarding-icon">👥</div>
+                <h2>Radar Social</h2>
+                <p>Ne perdez plus le contact avec vos proches. L'IA surveille la santé de vos 5 relations clés.</p>
+            </div>
+            <div class="onboarding-slide" data-slide="4">
+                <div class="onboarding-icon">🤖</div>
+                <h2>Ghost-Admin</h2>
+                <p>2 tâches administratives automatisées par mois. Paperasse, rendez-vous, comparaisons... l'IA gère.</p>
+            </div>
+        </div>
+        <div class="onboarding-dots" id="onboardingDots">
+            <div class="onboarding-dot active"></div>
+            <div class="onboarding-dot"></div>
+            <div class="onboarding-dot"></div>
+            <div class="onboarding-dot"></div>
+            <div class="onboarding-dot"></div>
+        </div>
+        <div class="onboarding-actions">
+            <button class="btn-onboard btn-skip" id="btnSkip">Passer</button>
+            <button class="btn-onboard btn-next" id="btnNext">Suivant</button>
+        </div>
+    </div>
+
+    <!-- ============================================
+         SETUP SCREEN
+         ============================================ -->
+    <div class="setup-screen" id="setupScreen">
+        <div class="setup-header">
+            <h2>👋 Configurons votre 6S</h2>
+            <p>Ces informations restent sur votre appareil</p>
+        </div>
+        <div class="setup-form">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Votre prénom</label>
+                <input type="text" id="userName" placeholder="Ex: Sarah" autocomplete="given-name">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-bed"></i> Heures de sommeil moyennes</label>
+                <select id="userSleep">
+                    <option value="5">Moins de 5h</option>
+                    <option value="6">5-6h</option>
+                    <option value="7" selected>6-7h</option>
+                    <option value="8">7-8h</option>
+                    <option value="9">Plus de 8h</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-running"></i> Niveau d'activité physique</label>
+                <select id="userActivity">
+                    <option value="low">Sédentaire</option>
+                    <option value="medium" selected>Modéré</option>
+                    <option value="high">Actif</option>
+                    <option value="athlete">Sportif</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-euro-sign"></i> Situation financière perçue</label>
+                <select id="userFinance">
+                    <option value="tight">Serrée</option>
+                    <option value="ok" selected>Correcte</option>
+                    <option value="comfortable">Confortable</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-users"></i> Vos 5 contacts clés (Radar Social)</label>
+                <div class="contact-inputs">
+                    <div class="contact-row">
+                        <input type="text" id="contact1" placeholder="Contact 1 (ex: Maman)">
+                        <input type="text" id="contact1rel" placeholder="Relation">
+                    </div>
+                    <div class="contact-row">
+                        <input type="text" id="contact2" placeholder="Contact 2 (ex: Thomas)">
+                        <input type="text" id="contact2rel" placeholder="Relation">
+                    </div>
+                    <div class="contact-row">
+                        <input type="text" id="contact3" placeholder="Contact 3">
+                        <input type="text" id="contact3rel" placeholder="Relation">
+                    </div>
+                    <div class="contact-row">
+                        <input type="text" id="contact4" placeholder="Contact 4">
+                        <input type="text" id="contact4rel" placeholder="Relation">
+                    </div>
+                    <div class="contact-row">
+                        <input type="text" id="contact5" placeholder="Contact 5">
+                        <input type="text" id="contact5rel" placeholder="Relation">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-launch" id="btnLaunch">
+                <i class="fas fa-eye"></i> Activer mon Sixième Sens
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================
+         NOTIFICATION OVERLAY & PANEL
+         ============================================ -->
+    <div class="notif-overlay" id="notifOverlay"></div>
+    <div class="notif-panel" id="notifPanel">
+        <div class="notif-panel-header">
+            <h2>🔔 Notifications</h2>
+            <button class="notif-close" id="notifClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="notifList"></div>
+    </div>
+
+    <!-- ============================================
+         DETAIL MODAL
+         ============================================ -->
+    <div class="detail-modal" id="detailModal">
+        <div class="modal-header">
+            <button class="modal-back" id="modalBack"><i class="fas fa-arrow-left"></i></button>
+            <h2 id="modalTitle">Détail</h2>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+
+    <!-- ============================================
+         MAIN APP
+         ============================================ -->
+    <div class="app-container" id="appContainer">
+
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <div class="top-bar-logo">👁️</div>
+                <span class="top-bar-title">6S</span>
+                <span class="top-bar-badge">INTUITION</span>
+            </div>
+            <div class="top-bar-right">
+                <button class="notif-btn" id="notifBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-badge" id="notifCount">3</span>
+                </button>
+                <div class="avatar-btn" id="avatarBtn">S</div>
+            </div>
+        </div>
+
+        <!-- ============ HOME PAGE ============ -->
+        <div class="page active" id="pageHome">
+            <div class="greeting animate-in">
+                <h1 id="greetingText">Bonjour, Sarah 👋</h1>
+                <p id="dateText"></p>
+            </div>
+
+            <!-- Life Score -->
+            <div class="life-score-card animate-in stagger-1">
+                <div class="score-header">
+                    <span>🌡️</span>
+                    <span>VOTRE SCORE DE VIE AUJOURD'HUI</span>
+                </div>
+                <div class="score-center">
+                    <div class="score-circle">
+                        <svg viewBox="0 0 160 160">
+                            <circle class="bg-ring" cx="80" cy="80" r="70"/>
+                            <circle class="score-ring" id="scoreRing" cx="80" cy="80" r="70"/>
+                        </svg>
+                        <div class="score-value">
+                            <div class="number" id="scoreNumber">0</div>
+                            <div class="label">/ 10</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="score-breakdown">
+                    <div class="score-item">
+                        <div class="icon">🏥</div>
+                        <div class="name">Santé</div>
+                        <div class="val" id="scoreHealth" style="color:var(--accent-green)">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="icon">💰</div>
+                        <div class="name">Finance</div>
+                        <div class="val" id="scoreFinance" style="color:var(--accent-yellow)">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="icon">👥</div>
+                        <div class="name">Social</div>
+                        <div class="val" id="scoreSocial" style="color:var(--accent-blue)">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="icon">🧠</div>
+                        <div class="name">Cognitif</div>
+                        <div class="val" id="scoreCognitive" style="color:var(--accent-purple)">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="icon">💼</div>
+                        <div class="name">Carrière</div>
+                        <div class="val" id="scoreCareer" style="color:var(--accent-cyan)">0</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="icon">📋</div>
+                        <div class="name">Admin</div>
+                        <div class="val" id="scoreAdmin" style="color:var(--accent-pink)">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictive Alerts -->
+            <div class="alerts-section animate-in stagger-2">
+                <div class="section-header">
+                    <h2>⚡ Alertes Prédictives</h2>
+                    <span class="see-all" onclick="navigateTo('predictions')">Tout voir</span>
+                </div>
+                <div id="alertsContainer"></div>
+                <div style="text-align:center;padding:8px 0;">
+                    <span style="font-size:12px;color:var(--text-muted)">
+                        <i class="fas fa-lock"></i> 3/3 alertes gratuites utilisées aujourd'hui
+                    </span>
+                </div>
+            </div>
+
+            <!-- Daily Actions -->
+            <div class="actions-section animate-in stagger-3">
+                <div class="section-header">
+                    <h2>🎯 Actions du jour</h2>
+                </div>
+                <div id="actionsContainer"></div>
+            </div>
+
+            <!-- Ghost Admin Summary -->
+            <div class="ghost-summary animate-in stagger-4" onclick="navigateTo('ghost')">
+                <div class="ghost-icon">🤖</div>
+                <div class="ghost-info">
+                    <h3>Ghost-Admin</h3>
+                    <p id="ghostSummaryText">A géré 1 tâche ce mois</p>
+                </div>
+                <div class="ghost-badge" id="ghostBadge">1/2</div>
+            </div>
+        </div>
+
+        <!-- ============ SHIELD PAGE ============ -->
+        <div class="page" id="pageShield">
+            <div class="shield-status animate-in">
+                <div class="shield-icon-large">🛡️</div>
+                <h2>Bouclier Cognitif</h2>
+                <p style="color:var(--text-secondary);font-size:14px">Protection de votre attention et détection de désinformation</p>
+                
+                <div class="attention-bar">
+                    <div class="bar-label">
+                        <span>Capital Attentionnel</span>
+                        <span id="attentionPercent" style="color:var(--accent-cyan);font-weight:700">78%</span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill" id="attentionBar" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <div class="shield-stats">
+                    <div class="shield-stat">
+                        <div class="s-value" id="shieldBlocked">23</div>
+                        <div class="s-label">Distractions bloquées</div>
+                    </div>
+                    <div class="shield-stat">
+                        <div class="s-value" id="shieldTime">2h14</div>
+                        <div class="s-label">Temps profond</div>
+                    </div>
+                    <div class="shield-stat">
+                        <div class="s-value" id="shieldBoost">+34%</div>
+                        <div class="s-label">Productivité</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header animate-in stagger-1">
+                <h2>🎛️ Modes de Protection</h2>
+            </div>
+
+            <div class="mode-cards animate-in stagger-2">
+                <div class="mode-card active-mode" data-mode="focus">
+                    <div class="mode-icon" style="background:rgba(124,58,237,0.15)">🎯</div>
+                    <div class="mode-info">
+                        <h3>Deep Focus</h3>
+                        <p>Bloque toutes les notifications sauf urgences</p>
+                    </div>
+                    <div class="mode-toggle on" onclick="toggleMode(this)"></div>
+                </div>
+                <div class="mode-card" data-mode="scroll">
+                    <div class="mode-icon" style="background:rgba(245,158,11,0.15)">📱</div>
+                    <div class="mode-info">
+                        <h3>Anti-Scroll Infini</h3>
+                        <p>Alerte après 10 min de scroll continu</p>
+                    </div>
+                    <div class="mode-toggle" onclick="toggleMode(this)"></div>
+                </div>
+                <div class="mode-card" data-mode="night">
+                    <div class="mode-icon" style="background:rgba(59,130,246,0.15)">🌙</div>
+                    <div class="mode-info">
+                        <h3>Mode Nuit Cognitif</h3>
+                        <p>Réduit la stimulation 1h avant le coucher</p>
+                    </div>
+                    <div class="mode-toggle" onclick="toggleMode(this)"></div>
+                </div>
+            </div>
+
+            <div class="section-header animate-in stagger-3">
+                <h2>🔍 Vérificateur de contenu</h2>
+            </div>
+
+            <div class="checker-card animate-in stagger-4">
+                <i class="fas fa-search-plus"></i>
+                <h3>Analyseur de Fiabilité</h3>
+                <p>Collez un lien ou du texte pour vérifier sa fiabilité et détecter d'éventuels deepfakes</p>
+                <div style="margin-bottom:12px">
+                    <input type="text" id="checkerInput" placeholder="Collez un lien ou du texte..." style="width:100%;padding:12px;background:var(--bg-secondary);border:var(--border-subtle);border-radius:8px;color:var(--text-primary);font-size:14px;font-family:'Inter',sans-serif;outline:none">
+                </div>
+                <button class="checker-btn" onclick="analyzeContent()">
+                    <i class="fas fa-shield-alt"></i> Analyser
+                </button>
+                <div id="checkerResult" style="margin-top:16px;text-align:left;display:none"></div>
+            </div>
+        </div>
+
+        <!-- ============ PREDICTIONS PAGE ============ -->
+        <div class="page" id="pagePredictions">
+            <div class="section-header animate-in">
+                <h2>📊 Prédictions</h2>
+            </div>
+
+            <div class="predictions-tabs animate-in stagger-1" id="predTabs">
+                <div class="pred-tab active" data-filter="all">Toutes</div>
+                <div class="pred-tab" data-filter="health">🏥 Santé</div>
+                <div class="pred-tab" data-filter="finance">💰 Finance</div>
+                <div class="pred-tab" data-filter="social">👥 Social</div>
+                <div class="pred-tab" data-filter="cognitive">🧠 Cognitif</div>
+            </div>
+
+            <div id="predictionsContainer" class="animate-in stagger-2"></div>
+        </div>
+
+        <!-- ============ SOCIAL RADAR PAGE ============ -->
+        <div class="page" id="pageSocial">
+            <div class="section-header animate-in">
+                <h2>👥 Radar Social</h2>
+            </div>
+
+            <div class="radar-visual animate-in stagger-1">
+                <div class="radar-container" id="radarContainer">
+                    <div class="radar-rings">
+                        <div class="radar-ring"></div>
+                        <div class="radar-ring"></div>
+                        <div class="radar-ring"></div>
+                    </div>
+                    <div class="radar-center" id="radarCenterText">S</div>
+                </div>
+            </div>
+
+            <div class="section-header animate-in stagger-2">
+                <h2>📋 État des relations</h2>
+                <span style="font-size:12px;color:var(--text-muted)">5/5 contacts</span>
+            </div>
+
+            <div id="contactsContainer" class="animate-in stagger-3"></div>
+        </div>
+
+        <!-- ============ GHOST ADMIN PAGE ============ -->
+        <div class="page" id="pageGhost">
+            <div class="section-header animate-in">
+                <h2>🤖 Ghost-Admin</h2>
+            </div>
+
+            <div class="ghost-quota animate-in stagger-1">
+                <h3 style="font-size:16px;font-weight:700;margin-bottom:8px">Quota mensuel</h3>
+                <p style="color:var(--text-secondary);font-size:13px">Plan INTUITION — 2 tâches automatisées / mois</p>
+                <div class="quota-visual">
+                    <div class="quota-slot used"><i class="fas fa-check" style="color:var(--accent-purple)"></i></div>
+                    <div class="quota-slot available"><i class="fas fa-plus" style="color:var(--accent-green)"></i></div>
+                </div>
+                <p style="font-size:13px;color:var(--text-muted)">1 utilisée · 1 restante</p>
+            </div>
+
+            <div class="section-header animate-in stagger-2">
+                <h2>📋 Tâches ce mois</h2>
+            </div>
+
+            <div id="ghostTasksContainer" class="animate-in stagger-3"></div>
+
+            <div class="upgrade-banner animate-in stagger-4">
+                <h3>💎 Passez à CLAIRVOYANCE</h3>
+                <p>20 tâches / mois + négociateur auto + bien plus</p>
+                <button class="upgrade-btn" onclick="showUpgradeModal()">9,99€/mois — Débloquer</button>
+            </div>
+        </div>
+
+        <!-- ============ SETTINGS PAGE ============ -->
+        <div class="page" id="pageSettings">
+            <div class="section-header animate-in">
+                <h2>⚙️ Paramètres</h2>
+            </div>
+
+            <div class="animate-in stagger-1">
+                <div class="plan-badge">
+                    <span>👁️</span>
+                    <span>Plan <strong>INTUITION</strong> (Gratuit)</span>
+                </div>
+            </div>
+
+            <div class="settings-section animate-in stagger-2">
+                <h3>Profil</h3>
+                <div class="settings-item" onclick="showDetailModal('Profil','Modifier votre nom, avatar et préférences de base.')">
+                    <i class="fas fa-user"></i>
+                    <span>Mon profil</span>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>
+                <div class="settings-item" onclick="showDetailModal('Connecter Appareils','Connectez votre montre, balance ou capteur pour des prédictions plus précises.')">
+                    <i class="fas fa-watch"></i>
+                    <span>Appareils connectés</span>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>
+            </div>
+
+            <div class="settings-section animate-in stagger-3">
+                <h3>Prédictions</h3>
+                <div class="settings-item">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                    <div class="mode-toggle on" onclick="toggleMode(this)" style="margin-left:auto"></div>
+                </div>
+                <div class="settings-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Heures calmes</span>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>
+                <div class="settings-item" onclick="showDetailModal('Précision IA','Plus vous utilisez 6S, plus vos prédictions deviennent précises. Actuellement : 68% de précision (augmente avec le temps).')">
+                    <i class="fas fa-brain"></i>
+                    <span>Précision de l'IA</span>
+                    <span style="color:var(--accent-cyan);font-size:13px;font-weight:600">68%</span>
+                </div>
+            </div>
+
+            <div class="settings-section animate-in stagger-4">
+                <h3>Vie privée & Sécurité</h3>
+                <div class="settings-item" onclick="showDetailModal('Données on-device','Vos données sensibles (santé, finance, contacts) sont stockées uniquement sur votre appareil. Rien n\'est envoyé à nos serveurs sans votre consentement explicite.')">
+                    <i class="fas fa-lock"></i>
+                    <span>Données on-device</span>
+                    <span style="color:var(--accent-green);font-size:12px">✅ Actif</span>
+                </div>
+                <div class="settings-item" onclick="showDetailModal('Chiffrement','Toutes vos données sont chiffrées en AES-256. Même nous ne pouvons pas les lire.')">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Chiffrement E2E</span>
+                    <span style="color:var(--accent-green);font-size:12px">✅ Actif</span>
+                </div>
+                <div class="settings-item">
+                    <i class="fas fa-download"></i>
+                    <span>Exporter mes données</span>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>
+                <div class="settings-item" style="color:var(--accent-red)">
+                    <i class="fas fa-trash" style="color:var(--accent-red)"></i>
+                    <span style="color:var(--accent-red)">Supprimer mon compte</span>
+                    <i class="fas fa-chevron-right chevron"></i>
+                </div>
+            </div>
+
+            <div class="settings-section animate-in stagger-5">
+                <h3>Abonnement</h3>
+                <div class="settings-item" onclick="showUpgradeModal()" style="background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(59,130,246,0.1))">
+                    <i class="fas fa-crown" style="color:var(--accent-yellow)"></i>
+                    <span>Passer à <strong>CLAIRVOYANCE</strong></span>
+                    <span style="color:var(--accent-yellow);font-size:13px;font-weight:600">9,99€</span>
+                </div>
+            </div>
+
+            <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">
+                SIXIÈME SENS v1.0.0 — © 2026<br>
+                Fait avec 🧠 par l'équipe 6S
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============================================
+         BOTTOM NAVIGATION
+         ============================================ -->
+    <nav class="bottom-nav" id="bottomNav" style="display:none">
+        <div class="nav-item active" data-page="home" onclick="navigateTo('home')">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" data-page="shield" onclick="navigateTo('shield')">
+            <i class="fas fa-shield-alt"></i>
+            <span>Bouclier</span>
+        </div>
+        <div class="nav-item" data-page="predictions" onclick="navigateTo('predictions')">
+            <i class="fas fa-chart-line"></i>
+            <span>Prédictions</span>
+        </div>
+        <div class="nav-item" data-page="social" onclick="navigateTo('social')">
+            <i class="fas fa-users"></i>
+            <span>Social</span>
+        </div>
+        <div class="nav-item" data-page="settings" onclick="navigateTo('settings')">
+            <i class="fas fa-cog"></i>
+            <span>Réglages</span>
+        </div>
+    </nav>
+
+    <!-- ============================================
+         JAVASCRIPT — APPLICATION ENGINE
+         ============================================ -->
+    <script>
+    // ============================================
+    // APP STATE
+    // ============================================
+    const APP = {
+        user: {
+            name: 'Utilisateur',
+            sleep: 7,
+            activity: 'medium',
+            finance: 'ok',
+            contacts: []
+        },
+        scores: {
+            health: 0, finance: 0, social: 0,
+            cognitive: 0, career: 0, admin: 0, total: 0
+        },
+        alerts: [],
+        predictions: [],
+        contacts: [],
+        ghostTasks: [],
+        notifications: [],
+        currentSlide: 0,
+        currentPage: 'home',
+        attentionLevel: 78,
+        shieldStats: { blocked: 23, deepTime: '2h14', productivity: '+34%' }
+    };
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+        // Check if returning user
+        const savedUser = localStorage.getItem('6s_user');
+        if (savedUser) {
+            APP.user = JSON.parse(savedUser);
+            setTimeout(() => {
+                document.getElementById('splashScreen').classList.add('hidden');
+                setTimeout(() => {
+                    initApp();
+                }, 400);
+            }, 2800);
+        } else {
+            setTimeout(() => {
+                document.getElementById('splashScreen').classList.add('hidden');
+                setTimeout(() => {
+                    document.getElementById('onboarding').classList.add('active');
+                }, 400);
+            }, 2800);
+        }
+    });
+
+    // ============================================
+    // ONBOARDING
+    // ============================================
+    const btnNext = document.getElementById('btnNext');
+    const btnSkip = document.getElementById('btnSkip');
+
+    btnNext.addEventListener('click', () => {
+        if (APP.currentSlide < 4) {
+            changeSlide(APP.currentSlide + 1);
+        } else {
+            goToSetup();
+        }
+    });
+
+    btnSkip.addEventListener('click', goToSetup);
+
+    function changeSlide(index) {
+        const slides = document.querySelectorAll('.onboarding-slide');
+        const dots = document.querySelectorAll('.onboarding-dot');
+        
+        slides[APP.currentSlide].classList.remove('active');
+        slides[APP.currentSlide].classList.add('left');
+        
+        APP.currentSlide = index;
+        
+        slides[index].classList.remove('left');
+        slides[index].classList.add('active');
+        
+        dots.forEach((d, i) => d.classList.toggle('active', i === index));
+        
+        btnNext.textContent = index === 4 ? 'Commencer' : 'Suivant';
+    }
+
+    function goToSetup() {
+        document.getElementById('onboarding').classList.remove('active');
+        document.getElementById('setupScreen').classList.add('active');
+    }
+
+    // ============================================
+    // SETUP
+    // ============================================
+    document.getElementById('btnLaunch').addEventListener('click', () => {
+        const name = document.getElementById('userName').value || 'Sarah';
+        const sleep = document.getElementById('userSleep').value;
+        const activity = document.getElementById('userActivity').value;
+        const finance = document.getElementById('userFinance').value;
+
+        const contacts = [];
+        for (let i = 1; i <= 5; i++) {
+            const cName = document.getElementById(`contact${i}`).value;
+            const cRel = document.getElementById(`contact${i}rel`).value;
+            if (cName) {
+                contacts.push({
+                    name: cName,
+                    relation: cRel || 'Proche',
+                    lastContact: Math.floor(Math.random() * 30) + 1,
+                    health: ['healthy', 'warning', 'danger'][Math.floor(Math.random() * 3)]
+                });
+            }
+        }
+
+        // Fill remaining contacts with defaults
+        const defaults = [
+            { name: 'Maman', relation: 'Famille' },
+            { name: 'Thomas', relation: 'Ami' },
+            { name: 'Julie', relation: 'Collègue' },
+            { name: 'Papa', relation: 'Famille' },
+            { name: 'Léa', relation: 'Amie' }
+        ];
+
+        while (contacts.length < 5) {
+            const d = defaults[contacts.length];
+            contacts.push({
+                name: d.name,
+                relation: d.relation,
+                lastContact: Math.floor(Math.random() * 45) + 1,
+                health: ['healthy', 'healthy', 'warning', 'danger'][Math.floor(Math.random() * 4)]
+            });
+        }
+
+        APP.user = { name, sleep: parseInt(sleep), activity, finance, contacts };
+        localStorage.setItem('6s_user', JSON.stringify(APP.user));
+
+        document.getElementById('setupScreen').classList.remove('active');
+        initApp();
+    });
+
+    // ============================================
+    // INIT APP
+    // ============================================
+    function initApp() {
+        generateScores();
+        generateAlerts();
+        generatePredictions();
+        generateGhostTasks();
+        generateNotifications();
+        
+        document.getElementById('appContainer').classList.add('active');
+        document.getElementById('bottomNav').style.display = 'flex';
+
+        renderHome();
+        renderShield();
+        renderPredictions();
+        renderSocial();
+        renderGhost();
+
+        // Animate score
+        setTimeout(() => {
+            animateScore();
+        }, 500);
+    }
+
+    // ============================================
+    // DATA GENERATION (SIMULATED AI)
+    // ============================================
+    function generateScores() {
+        const sleepFactor = APP.user.sleep >= 7 ? 1 : APP.user.sleep >= 6 ? 0.85 : 0.7;
+        const activityFactor = { low: 0.7, medium: 0.85, high: 1, athlete: 1.05 }[APP.user.activity];
+        const financeFactor = { tight: 0.65, ok: 0.8, comfortable: 0.95 }[APP.user.finance];
+
+        APP.scores.health = Math.min(10, (7 + Math.random() * 2) * sleepFactor * activityFactor).toFixed(1);
+        APP.scores.finance = Math.min(10, (6 + Math.random() * 2.5) * financeFactor).toFixed(1);
+        APP.scores.social = (5.5 + Math.random() * 3).toFixed(1);
+        APP.scores.cognitive = Math.min(10, (7 + Math.random() * 2.5) * sleepFactor).toFixed(1);
+        APP.scores.career = (6 + Math.random() * 3).toFixed(1);
+        APP.scores.admin = (7.5 + Math.random() * 2.5).toFixed(1);
+
+        const vals = [APP.scores.health, APP.scores.finance, APP.scores.social,
+                      APP.scores.cognitive, APP.scores.career, APP.scores.admin];
+        APP.scores.total = (vals.reduce((a, b) => a + parseFloat(b), 0) / vals.length).toFixed(1);
+    }
+
+    function generateAlerts() {
+        const hour = new Date().getHours();
+        
+        const possibleAlerts = [
+            {
+                type: 'red', icon: 'fa-heart-pulse',
+                title: 'Risque fatigue accumulée détecté',
+                desc: `Votre sommeil moyen de ${APP.user.sleep}h combiné à votre activité suggère un déficit. Risque de baisse immunitaire dans 5-7 jours.`,
+                time: 'Prédiction J+5 à J+7',
+                actions: ['Ajuster sommeil', 'Rappel ce soir']
+            },
+            {
+                type: 'yellow', icon: 'fa-wallet',
+                title: 'Dépense inhabituelle prévue',
+                desc: 'Historiquement, vos dépenses augmentent de 30% cette période. Prévoyez un budget tampon.',
+                time: 'Prédiction J+14',
+                actions: ['Voir détails', 'Ignorer']
+            },
+            {
+                type: 'green', icon: 'fa-bolt',
+                title: `Pic d'énergie optimal : ${hour < 12 ? '10h-12h' : '16h-18h'}`,
+                desc: `Votre rythme circadien indique un pic de performance cognitive. Idéal pour le travail profond ou les décisions importantes.`,
+                time: 'Aujourd\'hui',
+                actions: ['Activer Deep Focus', 'Noté']
+            }
+        ];
+
+        APP.alerts = possibleAlerts;
+    }
+
+    function generatePredictions() {
+        APP.predictions = [
+            {
+                type: 'health', category: 'Santé',
+                title: 'Risque de rhume dans 10-14 jours',
+                desc: `Basé sur votre sommeil (${APP.user.sleep}h/nuit), la saison actuelle et les données épidémiologiques locales, probabilité d'infection respiratoire détectée.`,
+                confidence: 72,
+                timeline: 'J+10 à J+14',
+                recommendation: 'Vitamine C, augmenter le sommeil à 8h, éviter les lieux très fréquentés.',
+                chartData: [30, 45, 55, 62, 72, 78, 72, 65]
+            },
+            {
+                type: 'finance', category: 'Finance',
+                title: 'Fin de mois serrée prédite',
+                desc: 'Vos patterns de dépenses actuels projettent un solde bas en fin de mois. Réduction de 12% des dépenses variables recommandée.',
+                confidence: 81,
+                timeline: 'J+18 à J+25',
+                recommendation: 'Reporter les achats non essentiels, renégocier un abonnement.',
+                chartData: [80, 75, 68, 60, 52, 45, 38, 35]
+            },
+            {
+                type: 'social', category: 'Social',
+                title: `Relation ${APP.user.contacts[0]?.name || 'Maman'} en déclin`,
+                desc: `Dernier contact significatif il y a ${APP.user.contacts[0]?.lastContact || 15} jours. Historiquement, cela mène à un sentiment de culpabilité et d'isolement.`,
+                confidence: 88,
+                timeline: 'Déjà en cours',
+                recommendation: `Appeler ${APP.user.contacts[0]?.name || 'Maman'} ce soir entre 19h et 20h (créneau habituel de disponibilité).`,
+                chartData: [90, 82, 70, 58, 45, 38, 30, 25]
+            },
+            {
+                type: 'cognitive', category: 'Cognitif',
+                title: 'Surcharge informationnelle détectée',
+                desc: 'Votre consommation de contenus a augmenté de 40% cette semaine. Risque de fatigue décisionnelle et baisse de concentration.',
+                confidence: 76,
+                timeline: 'J+2 à J+5',
+                recommendation: 'Activer le mode Deep Focus, limiter le scroll à 30min/jour.',
+                chartData: [40, 55, 65, 75, 82, 88, 85, 78]
+            },
+            {
+                type: 'health', category: 'Santé',
+                title: 'Moment optimal pour le sport : 17h30',
+                desc: 'Votre courbe de cortisol et votre rythme cardiaque au repos indiquent un pic de forme physique en fin d\'après-midi.',
+                confidence: 84,
+                timeline: 'Aujourd\'hui',
+                recommendation: 'Session de 30-45 min cardio ou musculation pour résultat optimal.',
+                chartData: [50, 55, 65, 70, 85, 92, 80, 60]
+            }
+        ];
+    }
+
+    function generateGhostTasks() {
+        APP.ghostTasks = [
+            {
+                icon: '📊', iconBg: 'rgba(59,130,246,0.15)',
+                title: 'Comparaison assurance habitation',
+                desc: 'J\'ai analysé 12 offres du marché. Votre assurance actuelle est 18% au-dessus de la moyenne. 3 alternatives trouvées avec économie de 22-34€/mois.',
+                status: 'completed',
+                statusLabel: '✅ Terminée',
+                savings: '→ Économie potentielle : 34€/mois (408€/an)'
+            },
+            {
+                icon: '📅', iconBg: 'rgba(16,185,129,0.15)',
+                title: 'Disponible — Choisir une tâche',
+                desc: 'Sélectionnez une tâche à automatiser ce mois : déclaration, rendez-vous médical, contestation facture, comparaison forfait...',
+                status: 'available',
+                statusLabel: '🟢 Disponible',
+                savings: null
+            }
+        ];
+    }
+
+    function generateNotifications() {
+        APP.notifications = [
+            {
+                dot: 'red', title: '🔴 Alerte Santé',
+                text: 'Risque de fatigue détecté. Votre sommeil cumulé est insuffisant cette semaine.',
+                time: 'Il y a 2h', unread: true
+            },
+            {
+                dot: 'purple', title: '🤖 Ghost-Admin',
+                text: 'Comparaison assurance terminée ! 3 offres moins chères trouvées.',
+                time: 'Il y a 5h', unread: true
+            },
+            {
+                dot: 'green', title: '⚡ Conseil Prédictif',
+                text: `Pic cognitif détecté. Moment idéal pour un travail exigeant.`,
+                time: 'Ce matin', unread: true
+            }
+        ];
+    }
+
+    // ============================================
+    // RENDERING
+    // ============================================
+    function renderHome() {
+        // Greeting
+        const hour = new Date().getHours();
+        let greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+        document.getElementById('greetingText').textContent = `${greeting}, ${APP.user.name} 👋`;
+        
+        const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+        const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+        const now = new Date();
+        document.getElementById('dateText').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} 2026`;
+
+        // Avatar
+        document.getElementById('avatarBtn').textContent = APP.user.name.charAt(0).toUpperCase();
+
+        // Alerts
+        const alertsHtml = APP.alerts.map(a => `
+            <div class="alert-card ${a.type}" onclick="showAlertDetail('${a.title}')">
+                <div class="alert-icon"><i class="fas ${a.icon}"></i></div>
+                <div class="alert-content">
+                    <h3>${a.title}</h3>
+                    <p>${a.desc}</p>
+                    <div class="alert-time"><i class="fas fa-clock"></i> ${a.time}</div>
+                    <div class="alert-actions">
+                        ${a.actions.map((act, i) => `<button class="alert-btn ${i === 0 ? 'primary' : 'secondary'}">${act}</button>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('alertsContainer').innerHTML = alertsHtml;
+
+        // Actions
+        const actions = [
+            { time: '09:00', text: 'Deep Work — notifications bloquées', source: 'Bouclier Cognitif', done: hour >= 11 },
+            { time: '12:30', text: `Appeler ${APP.user.contacts[0]?.name || 'Maman'}`, source: 'Radar Social', done: hour >= 13 },
+            { time: '14:00', text: 'Revoir offre assurance', source: 'Ghost-Admin · 1 min', done: false },
+            { time: '17:30', text: 'Session sport (pic énergie prédit)', source: 'Prédict-Santé', done: false },
+            { time: '21:00', text: 'Mode nuit cognitif activé', source: 'Bouclier Cognitif', done: false }
+        ];
+
+        const actionsHtml = actions.map(a => `
+            <div class="action-item">
+                <span class="action-time">${a.time}</span>
+                <span class="action-dot ${a.done ? 'done' : ''}"></span>
+                <div class="action-text">
+                    ${a.text}
+                    <span class="source">${a.source}</span>
+                </div>
+                <div class="action-check ${a.done ? 'checked' : ''}" onclick="toggleAction(this)">
+                    ${a.done ? '<i class="fas fa-check"></i>' : ''}
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('actionsContainer').innerHTML = actionsHtml;
+
+        // Notifications
+        document.getElementById('notifCount').textContent = APP.notifications.filter(n => n.unread).length;
+
+        const notifsHtml = APP.notifications.map(n => `
+            <div class="notif-item ${n.unread ? 'unread' : ''}">
+                <div class="notif-dot-indicator ${n.dot}"></div>
+                <div class="notif-content">
+                    <h4>${n.title}</h4>
+                    <p>${n.text}</p>
+                    <div class="time">${n.time}</div>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('notifList').innerHTML = notifsHtml;
+    }
+
+    function animateScore() {
+        const scoreEl = document.getElementById('scoreNumber');
+        const ring = document.getElementById('scoreRing');
+        const circumference = 2 * Math.PI * 70;
+        const target = parseFloat(APP.scores.total);
+        const offset = circumference - (target / 10) * circumference;
+
+        ring.style.strokeDashoffset = offset;
+
+        // Animate number
+        let current = 0;
+        const interval = setInterval(() => {
+            current += 0.1;
+            if (current >= target) {
+                current = target;
+                clearInterval(interval);
+            }
+            scoreEl.textContent = current.toFixed(1);
+        }, 30);
+
+        // Animate sub-scores
+        const fields = ['Health','Finance','Social','Cognitive','Career','Admin'];
+        fields.forEach((f, i) => {
+            setTimeout(() => {
+                const key = f.toLowerCase();
+                const el = document.getElementById('score' + f);
+                animateNumber(el, parseFloat(APP.scores[key]));
+            }, 200 + i * 150);
+        });
+    }
+
+    function animateNumber(el, target) {
+        let current = 0;
+        const interval = setInterval(() => {
+            current += 0.1;
+            if (current >= target) {
+                current = target;
+                clearInterval(interval);
+            }
+            el.textContent = current.toFixed(1);
+        }, 25);
+    }
+
+    function renderShield() {
+        setTimeout(() => {
+            document.getElementById('attentionBar').style.width = APP.attentionLevel + '%';
+        }, 300);
+    }
+
+    function renderPredictions() {
+        const container = document.getElementById('predictionsContainer');
+        
+        const colors = {
+            health: ['var(--accent-green)', 'rgba(16,185,129,0.3)'],
+            finance: ['var(--accent-yellow)', 'rgba(245,158,11,0.3)'],
+            social: ['var(--accent-blue)', 'rgba(59,130,246,0.3)'],
+            cognitive: ['var(--accent-purple)', 'rgba(124,58,237,0.3)']
+        };
+
+        const html = APP.predictions.map(p => {
+            const clr = colors[p.type] || colors.health;
+            const chartBars = p.chartData.map(val => {
+                const h = (val / 100) * 60;
+                return `<div class="chart-bar" style="height:${h}px;background:${clr[0]};opacity:${0.4 + val/200}"></div>`;
+            }).join('');
+
+            return `
+                <div class="prediction-card" data-type="${p.type}">
+                    <div class="pred-header">
+                        <span class="pred-type ${p.type}">${p.category}</span>
+                        <span class="pred-confidence">Confiance : <strong>${p.confidence}%</strong></span>
+                    </div>
+                    <h3>${p.title}</h3>
+                    <p class="pred-desc">${p.desc}</p>
+                    <div class="pred-timeline">
+                        <i class="fas fa-calendar-alt"></i>
+                        Horizon : ${p.timeline}
+                    </div>
+                    <div class="pred-chart">${chartBars}</div>
+                    <div style="padding:12px;background:rgba(6,182,212,0.08);border-radius:8px;font-size:13px">
+                        <strong style="color:var(--accent-cyan)">💡 Recommandation :</strong>
+                        <span style="color:var(--text-secondary)">${p.recommendation}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+
+        // Tab filtering
+        document.querySelectorAll('.pred-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.pred-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const filter = tab.dataset.filter;
+                document.querySelectorAll('.prediction-card').forEach(card => {
+                    if (filter === 'all' || card.dataset.type === filter) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    }
+
+    function renderSocial() {
+        const container = document.getElementById('contactsContainer');
+        const radar = document.getElementById('radarContainer');
+
+        // Set center
+        document.getElementById('radarCenterText').textContent = APP.user.name.charAt(0);
+
+        // Position contacts on radar
+        const positions = [
+            { top: '5%', left: '45%' },
+            { top: '30%', left: '85%' },
+            { top: '70%', left: '80%' },
+            { top: '75%', left: '10%' },
+            { top: '25%', left: '5%' }
+        ];
+
+        // Assign health based on lastContact
+        APP.user.contacts.forEach(c => {
+            if (c.lastContact <= 7) c.health = 'healthy';
+            else if (c.lastContact <= 21) c.health = 'warning';
+            else c.health = 'danger';
+        });
+
+        const radarContacts = APP.user.contacts.map((c, i) => {
+            const pos = positions[i];
+            return `<div class="radar-contact ${c.health}" style="top:${pos.top};left:${pos.left}" title="${c.name}">
+                ${c.name.charAt(0)}
+            </div>`;
+        }).join('');
+
+        // Add to existing radar
+        const existingContacts = radar.querySelectorAll('.radar-contact');
+        existingContacts.forEach(el => el.remove());
+        radar.insertAdjacentHTML('beforeend', radarContacts);
+
+        // Contact cards
+        const statusLabels = {
+            healthy: { class: 'good', text: '✅ Bon' },
+            warning: { class: 'watch', text: '⚠️ À surveiller' },
+            danger: { class: 'alert', text: '🔴 Alerte' }
+        };
+
+        const bgColors = ['var(--accent-green)','var(--accent-blue)','var(--accent-purple)','var(--accent-cyan)','var(--accent-pink)'];
+
+        const cardsHtml = APP.user.contacts.map((c, i) => {
+            const s = statusLabels[c.health];
+            return `
+                <div class="contact-card">
+                    <div class="contact-avatar" style="background:${bgColors[i]}">${c.name.charAt(0)}</div>
+                    <div class="contact-info">
+                        <h3>${c.name}</h3>
+                        <p>${c.relation} · Dernier contact : il y a ${c.lastContact} jour${c.lastContact > 1 ? 's' : ''}</p>
+                        ${c.health !== 'healthy' ? `
+                        <div class="contact-actions">
+                            <button class="alert-btn primary" onclick="simulateCall('${c.name}')"><i class="fas fa-phone"></i> Appeler</button>
+                            <button class="alert-btn secondary"><i class="fas fa-comment"></i> Message</button>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <span class="contact-status ${s.class}">${s.text}</span>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = cardsHtml;
+    }
+
+    function renderGhost() {
+        const container = document.getElementById('ghostTasksContainer');
+
+        const statusClasses = {
+            completed: 'task-completed',
+            progress: 'task-progress',
+            available: 'task-pending'
+        };
+
+        const html = APP.ghostTasks.map(t => `
+            <div class="ghost-task">
+                <div class="ghost-task-header">
+                    <div class="ghost-task-icon" style="background:${t.iconBg}">${t.icon}</div>
+                    <span class="ghost-task-status ${statusClasses[t.status]}">${t.statusLabel}</span>
+                </div>
+                <h3>${t.title}</h3>
+                <p>${t.desc}</p>
+                ${t.savings ? `
+                <div class="ghost-savings">
+                    <i class="fas fa-piggy-bank"></i>
+                    <span>${t.savings}</span>
+                </div>
+                ` : `
+                <div style="margin-top:12px">
+                    <button class="alert-btn primary" onclick="showTaskPicker()"><i class="fas fa-plus"></i> Choisir une tâche</button>
+                </div>
+                `}
+            </div>
+        `).join('');
+
+        container.innerHTML = html;
+    }
+
+    // ============================================
+    // NAVIGATION
+    // ============================================
+    function navigateTo(page) {
+        APP.currentPage = page;
+
+        // Pages mapping
+        const pageMap = {
+            home: 'pageHome',
+            shield: 'pageShield',
+            predictions: 'pagePredictions',
+            social: 'pageSocial',
+            ghost: 'pageGhost',
+            settings: 'pageSettings'
+        };
+
+        // Nav mapping
+        const navMap = {
+            home: 'home',
+            shield: 'shield',
+            predictions: 'predictions',
+            social: 'social',
+            ghost: 'settings',
+            settings: 'settings'
+        };
+
+        // Hide all pages
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+        // Show target
+        const targetPage = document.getElementById(pageMap[page]);
+        if (targetPage) {
+            targetPage.classList.add('active');
+        }
+
+        // Update nav
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        const activeNav = document.querySelector(`.nav-item[data-page="${navMap[page]}"]`);
+        if (activeNav) activeNav.classList.add('active');
+
+        // Special animations
+        if (page === 'shield') {
+            setTimeout(() => {
+                document.getElementById('attentionBar').style.width = APP.attentionLevel + '%';
+            }, 300);
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ============================================
+    // INTERACTIONS
+    // ============================================
+    function toggleAction(el) {
+        el.classList.toggle('checked');
+        if (el.classList.contains('checked')) {
+            el.innerHTML = '<i class="fas fa-check"></i>';
+            el.parentElement.style.opacity = '0.5';
+        } else {
+            el.innerHTML = '';
+            el.parentElement.style.opacity = '1';
+        }
+    }
+
+    function toggleMode(el) {
+        el.classList.toggle('on');
+    }
+
+    // Notification Panel
+    document.getElementById('notifBtn').addEventListener('click', () => {
+        document.getElementById('notifPanel').classList.add('open');
+        document.getElementById('notifOverlay').classList.add('open');
+    });
+
+    document.getElementById('notifClose').addEventListener('click', closeNotifPanel);
+    document.getElementById('notifOverlay').addEventListener('click', closeNotifPanel);
+
+    function closeNotifPanel() {
+        document.getElementById('notifPanel').classList.remove('open');
+        document.getElementById('notifOverlay').classList.remove('open');
+        // Mark all as read
+        APP.notifications.forEach(n => n.unread = false);
+        document.getElementById('notifCount').textContent = '0';
+        document.getElementById('notifCount').style.display = 'none';
+    }
+
+    // Detail Modal
+    function showDetailModal(title, content) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalBody').innerHTML = `
+            <div style="padding:20px 0">
+                <p style="color:var(--text-secondary);line-height:1.6;font-size:15px">${content}</p>
+            </div>
+        `;
+        document.getElementById('detailModal').classList.add('open');
+    }
+
+    function showAlertDetail(title) {
+        const alert = APP.alerts.find(a => a.title === title) || APP.predictions.find(p => p.title === title);
+        if (!alert) return;
+        
+        showDetailModal(alert.title, `
+            <div style="margin-bottom:16px;padding:16px;background:rgba(124,58,237,0.08);border-radius:12px">
+                <p style="font-size:14px;color:var(--text-secondary);line-height:1.6">${alert.desc}</p>
+            </div>
+            ${alert.recommendation ? `
+            <div style="padding:16px;background:rgba(6,182,212,0.08);border-radius:12px">
+                <h4 style="color:var(--accent-cyan);margin-bottom:8px">💡 Recommandation</h4>
+                <p style="font-size:14px;color:var(--text-secondary)">${alert.recommendation}</p>
+            </div>
+            ` : ''}
+        `);
+    }
+
+    document.getElementById('modalBack').addEventListener('click', () => {
+        document.getElementById('detailModal').classList.remove('open');
+    });
+
+    // Content Analyzer
+    function analyzeContent() {
+        const input = document.getElementById('checkerInput').value;
+        const result = document.getElementById('checkerResult');
+        
+        if (!input.trim()) {
+            result.style.display = 'block';
+            result.innerHTML = '<p style="color:var(--accent-red)">Veuillez entrer un lien ou du texte à analyser.</p>';
+            return;
+        }
+
+        result.style.display = 'block';
+        result.innerHTML = '<div class="shimmer" style="height:120px;border-radius:12px"></div>';
+
+        setTimeout(() => {
+            const reliability = Math.floor(Math.random() * 40) + 55;
+            const deepfake = Math.random() > 0.8 ? 'POSITIF ⚠️' : 'NÉGATIF ✅';
+            const bias = ['Biais de confirmation', 'Cadrage émotionnel', 'Aucun biais majeur', 'Appel à la peur'][Math.floor(Math.random() * 4)];
+            const manipulation = Math.floor(Math.random() * 100);
+
+            result.innerHTML = `
+                <div style="background:var(--bg-card);border-radius:12px;padding:16px;border:var(--border-subtle)">
+                    <h4 style="margin-bottom:12px;color:var(--accent-cyan)">🛡️ Résultat de l'analyse</h4>
+                    
+                    <div style="margin-bottom:8px">
+                        <span style="font-size:13px;color:var(--text-muted)">Fiabilité source</span>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                            <div style="flex:1;height:8px;background:var(--bg-secondary);border-radius:4px;overflow:hidden">
+                                <div style="width:${reliability}%;height:100%;background:${reliability > 70 ? 'var(--accent-green)' : 'var(--accent-yellow)'};border-radius:4px"></div>
+                            </div>
+                            <span style="font-size:14px;font-weight:700;color:${reliability > 70 ? 'var(--accent-green)' : 'var(--accent-yellow)'}">${reliability}%</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom:8px">
+                        <span style="font-size:13px;color:var(--text-muted)">Détection Deepfake :</span>
+                        <span style="font-size:13px;font-weight:600;margin-left:8px">${deepfake}</span>
+                    </div>
+                    
+                    <div style="margin-bottom:8px">
+                        <span style="font-size:13px;color:var(--text-muted)">Biais détecté :</span>
+                        <span style="font-size:13px;font-weight:600;margin-left:8px;color:var(--accent-yellow)">${bias}</span>
+                    </div>
+
+                    <div>
+                        <span style="font-size:13px;color:var(--text-muted)">Score manipulation :</span>
+                        <span style="font-size:13px;font-weight:600;margin-left:8px;color:${manipulation > 50 ? 'var(--accent-red)' : 'var(--accent-green)'}">${manipulation > 50 ? 'Élevé' : 'Faible'} (${manipulation}%)</span>
+                    </div>
+                </div>
+            `;
+        }, 2000);
+    }
+
+    function simulateCall(name) {
+        showDetailModal(`📞 Appel ${name}`, `
+            <div style="text-align:center;padding:40px 0">
+                <div style="font-size:60px;margin-bottom:20px">📞</div>
+                <h3 style="margin-bottom:8px">Appel simulé vers ${name}</h3>
+                <p style="color:var(--text-secondary)">Dans la version complète, 6S peut passer l'appel directement et vous rappellera au moment optimal.</p>
+                <div style="margin-top:20px;padding:16px;background:rgba(16,185,129,0.08);border-radius:12px">
+                    <p style="color:var(--accent-green);font-size:13px">✅ Contact mis à jour dans le Radar Social</p>
+                </div>
+            </div>
+        `);
+
+        // Update contact
+        const contact = APP.user.contacts.find(c => c.name === name);
+        if (contact) {
+            contact.lastContact = 0;
+            contact.health = 'healthy';
+            renderSocial();
+        }
+    }
+
+    function showTaskPicker() {
+        showDetailModal('🤖 Choisir une tâche Ghost-Admin', `
+            <p style="color:var(--text-secondary);margin-bottom:20px">Sélectionnez la tâche que l'IA doit gérer pour vous :</p>
+            
+            <div style="display:flex;flex-direction:column;gap:10px">
+                ${[
+                    { icon: '📋', title: 'Déclaration d\'impôts', desc: 'Pré-remplir et vérifier votre déclaration' },
+                    { icon: '🏥', title: 'Rendez-vous médical', desc: 'Trouver et réserver un créneau optimal' },
+                    { icon: '📧', title: 'Contestation facture', desc: 'Rédiger et envoyer une lettre de contestation' },
+                    { icon: '📱', title: 'Comparaison forfait mobile', desc: 'Analyser les offres et trouver la meilleure' },
+                    { icon: '🏠', title: 'Renégociation abonnement', desc: 'Négocier un meilleur tarif avec votre fournisseur' }
+                ].map(t => `
+                    <div style="padding:16px;background:var(--bg-card);border-radius:12px;border:var(--border-subtle);cursor:pointer;transition:all 0.3s" 
+                         onmouseover="this.style.borderColor='var(--accent-purple)'"
+                         onmouseout="this.style.borderColor=''"
+                         onclick="selectGhostTask('${t.title}')">
+                        <div style="display:flex;align-items:center;gap:12px">
+                            <span style="font-size:24px">${t.icon}</span>
+                            <div>
+                                <h4 style="font-size:14px">${t.title}</h4>
+                                <p style="font-size:12px;color:var(--text-secondary)">${t.desc}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `);
+    }
+
+    function selectGhostTask(title) {
+        APP.ghostTasks[1] = {
+            icon: '⏳', iconBg: 'rgba(59,130,246,0.15)',
+            title: title,
+            desc: 'L\'IA travaille sur cette tâche. Résultat estimé dans 24-48h.',
+            status: 'progress',
+            statusLabel: '🔄 En cours',
+            savings: null
+        };
+        renderGhost();
+        document.getElementById('detailModal').classList.remove('open');
+        
+        document.getElementById('ghostSummaryText').textContent = `2 tâches utilisées ce mois`;
+        document.getElementById('ghostBadge').textContent = '2/2';
+    }
+
+    function showUpgradeModal() {
+        showDetailModal('💎 Passer à CLAIRVOYANCE', `
+            <div style="text-align:center;padding:20px 0">
+                <div style="font-size:60px;margin-bottom:16px">💎</div>
+                <h3 style="font-size:22px;margin-bottom:8px;background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent">CLAIRVOYANCE</h3>
+                <p style="color:var(--accent-yellow);font-size:18px;font-weight:700;margin-bottom:20px">9,99€ / mois</p>
+                
+                <div style="text-align:left;display:flex;flex-direction:column;gap:12px">
+                    ${[
+                        'Alertes prédictives illimitées',
+                        'Tous les modules complets',
+                        'Ghost-Admin : 20 tâches / mois',
+                        'Négociateur automatique',
+                        'Prédictions financières J+90',
+                        'Matching symbiotique',
+                        'Prédict-Carrière complet'
+                    ].map(f => `
+                        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(124,58,237,0.08);border-radius:8px">
+                            <span style="color:var(--accent-green)">✅</span>
+                            <span style="font-size:14px">${f}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <button style="width:100%;padding:16px;background:var(--gradient-main);border:none;border-radius:12px;color:white;font-size:16px;font-weight:700;margin-top:24px;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,0.4)">
+                    Débloquer CLAIRVOYANCE
+                </button>
+                <p style="font-size:12px;color:var(--text-muted);margin-top:12px">Annulable à tout moment · Satisfait ou remboursé 30 jours</p>
+            </div>
+        `);
+    }
+
+    // Avatar click → settings
+    document.getElementById('avatarBtn').addEventListener('click', () => {
+        navigateTo('settings');
+    });
+
+    // Touch swipe for pages (basic)
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+
+    document.addEventListener('touchend', e => {
+        const diff = e.changedTouches[0].screenX - touchStartX;
+        if (Math.abs(diff) < 80) return;
+        
+        const pages = ['home', 'shield', 'predictions', 'social', 'settings'];
+        const currentIndex = pages.indexOf(APP.currentPage);
+        
+        if (diff < 0 && currentIndex < pages.length - 1) {
+            navigateTo(pages[currentIndex + 1]);
+        } else if (diff > 0 && currentIndex > 0) {
+            navigateTo(pages[currentIndex - 1]);
+        }
+    });
+    </script>
+</body>
+</html>
