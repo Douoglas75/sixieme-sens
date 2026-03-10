@@ -1,0 +1,9 @@
+{
+  "name": "Sixième Sens",
+  "description": "L'Intelligence Anticipative de Vie - IA qui anticipe vos besoins, protège votre attention et automatise votre quotidien.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
