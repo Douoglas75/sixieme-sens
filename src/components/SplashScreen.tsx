@@ -19,18 +19,14 @@ export const SplashScreen: React.FC = () => {
             ]
           }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="w-full h-full rounded-full bg-gradient-to-br from-[#7c3aed] via-[#3b82f6] to-[#06b6d4] flex items-center justify-center"
+          className="w-full h-full rounded-3xl overflow-hidden bg-gradient-to-br from-[#7c3aed] via-[#3b82f6] to-[#06b6d4] flex items-center justify-center"
         >
-          <div className="w-12 h-12 rounded-full bg-[#0a0a1a] flex items-center justify-center">
-            <motion.div
-              animate={{ 
-                x: [0, 3, -2, 2, 0],
-                y: [0, -2, 3, 2, 0]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="w-5 h-5 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#06b6d4]"
-            />
-          </div>
+          <img 
+            src="/icon-512.png" 
+            alt="6S Logo" 
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
         </motion.div>
       </motion.div>
       

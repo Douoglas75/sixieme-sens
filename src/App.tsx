@@ -11,6 +11,7 @@ import { Predictions } from './components/Predictions';
 import { SocialRadar } from './components/SocialRadar';
 import { Settings } from './components/Settings';
 import { Connections } from './components/Connections';
+import { GhostAdmin } from './components/GhostAdmin';
 import { BottomNav } from './components/BottomNav';
 import { TopBar } from './components/TopBar';
 import { AnimatePresence, motion } from 'motion/react';
@@ -19,7 +20,7 @@ const AppContent: React.FC = () => {
   const { isLocked, hasPin } = useSecurity();
   const { user, isLoading } = useApp();
   const [showSplash, setShowSplash] = useState(true);
-  const [activePage, setActivePage] = useState<'home' | 'shield' | 'predictions' | 'social' | 'settings' | 'connections'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'shield' | 'predictions' | 'social' | 'settings' | 'connections' | 'ghost'>('home');
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 2500);
@@ -35,13 +36,14 @@ const AppContent: React.FC = () => {
 
   const renderPage = () => {
     switch (activePage) {
-      case 'home': return <Dashboard />;
+      case 'home': return <Dashboard onNavigate={setActivePage} />;
       case 'shield': return <Shield />;
       case 'predictions': return <Predictions />;
       case 'social': return <SocialRadar />;
       case 'settings': return <Settings onNavigate={setActivePage} />;
       case 'connections': return <Connections />;
-      default: return <Dashboard />;
+      case 'ghost': return <GhostAdmin />;
+      default: return <Dashboard onNavigate={setActivePage} />;
     }
   };
 

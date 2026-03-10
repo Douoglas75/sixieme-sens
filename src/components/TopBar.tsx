@@ -9,7 +9,14 @@ export const TopBar: React.FC<TopBarProps> = ({ onSettings }) => {
   return (
     <header className="px-5 py-3 pt-[env(safe-area-inset-top,44px)] bg-[#0a0a1a]/80 backdrop-blur-xl border-b border-[#7c3aed]/10 flex items-center justify-between z-50">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#06b6d4] flex items-center justify-center text-sm">👁️</div>
+        <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-[#7c3aed] to-[#06b6d4] flex items-center justify-center">
+          <img 
+            src="/icon-192.png" 
+            alt="6S" 
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        </div>
         <span className="font-black text-lg tracking-tighter bg-gradient-to-r from-[#7c3aed] to-[#06b6d4] bg-clip-text text-transparent">6S</span>
         <span className="text-[8px] font-black bg-[#1a1a3e] text-[#06b6d4] px-2 py-0.5 rounded-full tracking-widest uppercase">Intuition</span>
       </div>

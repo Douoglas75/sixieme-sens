@@ -4,7 +4,11 @@ import { ScoreData } from '../types';
 import { motion } from 'motion/react';
 import { HeartPulse, Wallet, Zap, Clock, Check, PiggyBank, ChevronRight } from 'lucide-react';
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  onNavigate: (page: any) => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const { user, scores, alerts } = useApp();
 
   if (!user || !scores) return null;
@@ -77,7 +81,12 @@ export const Dashboard: React.FC = () => {
           <h2 className="text-lg font-bold flex items-center gap-2">
             <Zap size={18} className="text-amber-400" /> Alertes Prédictives
           </h2>
-          <span className="text-xs text-[#7c3aed] font-bold">Tout voir</span>
+          <span 
+            onClick={() => onNavigate('predictions')}
+            className="text-xs text-[#7c3aed] font-bold cursor-pointer"
+          >
+            Tout voir
+          </span>
         </div>
         
         <div className="space-y-3">
@@ -120,7 +129,10 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Ghost Admin Summary */}
-      <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1a1a3e]/50 to-[#0a0a1a] border border-[#7c3aed]/20 flex items-center gap-4">
+      <div 
+        onClick={() => onNavigate('ghost')}
+        className="p-4 rounded-2xl bg-gradient-to-br from-[#1a1a3e]/50 to-[#0a0a1a] border border-[#7c3aed]/20 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all"
+      >
         <div className="w-12 h-12 rounded-xl bg-[#7c3aed]/10 flex items-center justify-center text-2xl">🤖</div>
         <div className="flex-1">
           <h3 className="text-sm font-bold">Ghost-Admin</h3>
