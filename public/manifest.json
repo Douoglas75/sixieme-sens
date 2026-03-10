@@ -1,0 +1,23 @@
+{
+  "name": "Sixième Sens",
+  "short_name": "6S",
+  "description": "L'Intelligence Anticipative de Vie - IA qui anticipe vos besoins, protège votre attention et automatise votre quotidien.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a1a",
+  "theme_color": "#0a0a1a",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/6s-icon/192/192",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://picsum.photos/seed/6s-icon-large/512/512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
