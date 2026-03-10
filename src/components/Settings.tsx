@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { useSecurity } from '../contexts/SecurityContext';
-import { User, Watch, Bell, Clock, Brain, Lock, ShieldCheck, Download, Trash2, Crown, ChevronRight } from 'lucide-react';
+import { User as UserIcon, Watch, Bell, Clock, Brain, Lock, ShieldCheck, Download, Trash2, Crown, ChevronRight, Cloud, X, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface SettingsProps {
   onNavigate: (page: any) => void;
@@ -9,7 +10,15 @@ interface SettingsProps {
 
 export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
   const { lock } = useSecurity();
-  const { user } = useApp();
+  const { user, setUser } = useApp();
+  const [cloudSync, setCloudSync] = useState(true);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [editUser, setEditUser] = useState(user || { name: '', sleep: 7, activity: 'medium', finance: 'ok', contacts: [] });
+
+  const handleSaveProfile = () => {
+    setUser(editUser as any);
+    setShowProfileModal(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -24,8 +33,11 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
         <section className="space-y-2">
           <h3 className="text-[10px] font-bold text-[#6a6a99] uppercase tracking-widest px-1">Profil</h3>
           <div className="space-y-1.5">
-            <div className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl cursor-pointer active:scale-[0.98] transition-all">
-              <User size={18} className="text-[#7c3aed]" />
+            <div 
+              onClick={() => setShowProfileModal(true)}
+              className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl cursor-pointer active:scale-[0.98] transition-all"
+            >
+              <UserIcon size={18} className="text-[#7c3aed]" />
               <span className="flex-1 text-sm">Mon profil</span>
               <ChevronRight size={16} className="text-[#6a6a99]" />
             </div>
@@ -41,7 +53,7 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
         </section>
 
         <section className="space-y-2">
-          <h3 className="text-[10px] font-bold text-[#6a6a99] uppercase tracking-widest px-1">Sécurité</h3>
+          <h3 className="text-[10px] font-bold text-[#6a6a99] uppercase tracking-widest px-1">Sécurité & Cloud</h3>
           <div className="space-y-1.5">
             <div 
               onClick={lock}
@@ -50,7 +62,17 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
               <Lock size={18} className="text-amber-500" />
               <span className="flex-1 text-sm">Verrouiller la session</span>
             </div>
-            <div className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl cursor-pointer active:scale-[0.98] transition-all">
+            <div className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl">
+              <Cloud size={18} className="text-blue-500" />
+              <span className="flex-1 text-sm">Cloud Sync (Encrypted)</span>
+              <button 
+                onClick={() => setCloudSync(!cloudSync)}
+                className={`w-11 h-6 rounded-full relative transition-colors ${cloudSync ? 'bg-blue-500' : 'bg-[#111128]'}`}
+              >
+                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all ${cloudSync ? 'left-[22px]' : 'left-0.5'}`} />
+              </button>
+            </div>
+            <div className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl">
               <ShieldCheck size={18} className="text-emerald-500" />
               <span className="flex-1 text-sm">Chiffrement AES-256</span>
               <span className="text-[10px] text-emerald-500 font-bold">ACTIF</span>
@@ -69,29 +91,9 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl">
-              <Clock size={18} className="text-[#7c3aed]" />
-              <span className="flex-1 text-sm">Heures calmes</span>
-              <ChevronRight size={16} className="text-[#6a6a99]" />
-            </div>
-            <div className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl">
               <Brain size={18} className="text-[#7c3aed]" />
               <span className="flex-1 text-sm">Précision IA</span>
               <span className="text-xs font-bold text-[#06b6d4]">68%</span>
-            </div>
-          </div>
-        </section>
-
-        <section className="space-y-2">
-          <h3 className="text-[10px] font-bold text-[#6a6a99] uppercase tracking-widest px-1">Vie privée</h3>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl">
-              <Download size={18} className="text-[#7c3aed]" />
-              <span className="flex-1 text-sm">Exporter mes données</span>
-              <ChevronRight size={16} className="text-[#6a6a99]" />
-            </div>
-            <div className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl text-red-500">
-              <Trash2 size={18} />
-              <span className="flex-1 text-sm">Supprimer mon compte</span>
             </div>
           </div>
         </section>
@@ -107,6 +109,87 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
           </div>
         </section>
       </div>
+
+      <AnimatePresence>
+        {showProfileModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowProfileModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-[#1a1a3e] border border-[#7c3aed]/30 rounded-[2rem] p-8 shadow-2xl overflow-y-auto max-h-[80vh]"
+            >
+              <button 
+                onClick={() => setShowProfileModal(false)}
+                className="absolute top-6 right-6 text-[#a0a0cc]"
+              >
+                <X size={20} />
+              </button>
+              
+              <h3 className="text-xl font-bold mb-6">Modifier le profil</h3>
+              
+              <div className="space-y-4 mb-8">
+                <div>
+                  <label className="text-[10px] text-[#6a6a99] uppercase font-bold mb-1.5 block">Prénom</label>
+                  <input 
+                    value={editUser.name}
+                    onChange={e => setEditUser({...editUser, name: e.target.value})}
+                    className="w-full bg-[#0a0a1a] border border-[#7c3aed]/20 rounded-xl p-3 text-sm outline-none focus:border-[#7c3aed]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#6a6a99] uppercase font-bold mb-1.5 block">Sommeil moyen (h)</label>
+                  <input 
+                    type="number"
+                    value={editUser.sleep}
+                    onChange={e => setEditUser({...editUser, sleep: parseInt(e.target.value)})}
+                    className="w-full bg-[#0a0a1a] border border-[#7c3aed]/20 rounded-xl p-3 text-sm outline-none focus:border-[#7c3aed]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#6a6a99] uppercase font-bold mb-1.5 block">Activité</label>
+                  <select 
+                    value={editUser.activity}
+                    onChange={e => setEditUser({...editUser, activity: e.target.value as any})}
+                    className="w-full bg-[#0a0a1a] border border-[#7c3aed]/20 rounded-xl p-3 text-sm outline-none focus:border-[#7c3aed]"
+                  >
+                    <option value="low">Faible</option>
+                    <option value="medium">Moyenne</option>
+                    <option value="high">Élevée</option>
+                    <option value="athlete">Athlète</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#6a6a99] uppercase font-bold mb-1.5 block">Finance</label>
+                  <select 
+                    value={editUser.finance}
+                    onChange={e => setEditUser({...editUser, finance: e.target.value as any})}
+                    className="w-full bg-[#0a0a1a] border border-[#7c3aed]/20 rounded-xl p-3 text-sm outline-none focus:border-[#7c3aed]"
+                  >
+                    <option value="tight">Serrée</option>
+                    <option value="ok">Correcte</option>
+                    <option value="comfortable">Confortable</option>
+                  </select>
+                </div>
+              </div>
+
+              <button 
+                onClick={handleSaveProfile}
+                className="w-full py-4 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-2xl font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <Check size={18} /> Enregistrer
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="text-center py-8 text-[10px] text-[#6a6a99] font-medium">
         SIXIÈME SENS v2.0.0 🔐 — © 2026

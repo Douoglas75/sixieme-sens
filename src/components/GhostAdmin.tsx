@@ -1,13 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { Check, Plus, Crown, PiggyBank } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Check, Plus, Crown, PiggyBank, X, Sparkles } from 'lucide-react';
 
 export const GhostAdmin: React.FC = () => {
-  const { ghostTasks } = useApp();
+  const { ghostTasks, requestGhostTask } = useApp();
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [taskName, setTaskName] = useState('');
+
+  const handleRequest = async () => {
+    if (taskName) {
+      await requestGhostTask(taskName);
+      setShowRequestModal(false);
+      setTaskName('');
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-bold">🤖 Ghost-Admin</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold">🤖 Ghost-Admin</h2>
+        <button 
+          onClick={() => setShowRequestModal(true)}
+          className="w-10 h-10 rounded-full bg-[#7c3aed]/10 flex items-center justify-center text-[#7c3aed]"
+        >
+          <Plus size={20} />
+        </button>
+      </div>
 
       <div className="p-6 rounded-[2rem] bg-gradient-to-br from-[#1a1a3e] to-[#0a0a1a] border border-[#7c3aed]/20 text-center">
         <h3 className="text-sm font-bold mb-1.5">Quota mensuel</h3>
@@ -26,10 +45,15 @@ export const GhostAdmin: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-base font-bold">📋 Tâches</h2>
+        <h2 className="text-base font-bold">📋 Tâches actives</h2>
         
         {ghostTasks.map(task => (
-          <div key={task.id} className="p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/20">
+          <motion.div 
+            key={task.id} 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/20"
+          >
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: task.bg }}>
                 {task.icon}
@@ -54,11 +78,14 @@ export const GhostAdmin: React.FC = () => {
             )}
 
             {task.st === 'available' && (
-              <button className="w-full mt-2 py-2.5 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-xl text-[10px] font-bold flex items-center justify-center gap-2">
+              <button 
+                onClick={() => setShowRequestModal(true)}
+                className="w-full mt-2 py-2.5 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-xl text-[10px] font-bold flex items-center justify-center gap-2"
+              >
                 <Plus size={14} /> Choisir une tâche
               </button>
             )}
-          </div>
+          </motion.div>
         ))}
       </div>
 
@@ -70,6 +97,55 @@ export const GhostAdmin: React.FC = () => {
           9,99€ / mois
         </button>
       </div>
+
+      <AnimatePresence>
+        {showRequestModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowRequestModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-[#1a1a3e] border border-[#7c3aed]/30 rounded-[2rem] p-8 shadow-2xl"
+            >
+              <button 
+                onClick={() => setShowRequestModal(false)}
+                className="absolute top-6 right-6 text-[#a0a0cc]"
+              >
+                <X size={20} />
+              </button>
+              
+              <h3 className="text-xl font-bold mb-2">Nouvelle tâche</h3>
+              <p className="text-xs text-[#a0a0cc] mb-6">Que doit faire Ghost-Admin pour vous ?</p>
+              
+              <div className="space-y-4 mb-8">
+                <div>
+                  <label className="text-[10px] text-[#6a6a99] uppercase font-bold mb-1.5 block">Description de la tâche</label>
+                  <textarea 
+                    value={taskName}
+                    onChange={e => setTaskName(e.target.value)}
+                    className="w-full bg-[#0a0a1a] border border-[#7c3aed]/20 rounded-xl p-3 text-sm outline-none focus:border-[#7c3aed] h-24 resize-none"
+                    placeholder="Ex: Trouver un meilleur contrat d'énergie..."
+                  />
+                </div>
+              </div>
+
+              <button 
+                onClick={handleRequest}
+                className="w-full py-4 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-2xl font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <Sparkles size={18} /> Lancer l'IA
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

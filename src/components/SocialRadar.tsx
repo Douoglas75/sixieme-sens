@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { Phone, MessageSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Phone, MessageSquare, UserPlus, X, Check } from 'lucide-react';
 
 export const SocialRadar: React.FC = () => {
-  const { user } = useApp();
+  const { user, addContact } = useApp();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newContact, setNewContact] = useState({ name: '', relation: 'Ami' });
 
   if (!user) return null;
 
@@ -28,9 +31,29 @@ export const SocialRadar: React.FC = () => {
     'bg-pink-500'
   ];
 
+  const handleAdd = () => {
+    if (newContact.name) {
+      addContact({
+        ...newContact,
+        lastContact: 0,
+        health: 'healthy'
+      });
+      setShowAddModal(false);
+      setNewContact({ name: '', relation: 'Ami' });
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-bold">👥 Radar Social</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold">👥 Radar Social</h2>
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="w-10 h-10 rounded-full bg-[#7c3aed]/10 flex items-center justify-center text-[#7c3aed]"
+        >
+          <UserPlus size={20} />
+        </button>
+      </div>
       
       <div className="relative w-64 h-64 mx-auto mb-8">
         {[1, 2, 3].map(i => (
@@ -50,29 +73,37 @@ export const SocialRadar: React.FC = () => {
         </div>
         
         {contacts.map((c, i) => (
-          <div 
+          <motion.div 
             key={i}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
             className={`absolute w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all z-10 ${
               c.health === 'healthy' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-500' : 
               c.health === 'warning' ? 'bg-amber-500/20 border-amber-500 text-amber-500' : 
               'bg-red-500/20 border-red-500 text-red-500 animate-pulse'
             }`}
-            style={{ top: pos[i].t, left: pos[i].l }}
+            style={{ top: pos[i % pos.length].t, left: pos[i % pos.length].l }}
           >
             {c.name.charAt(0)}
-          </div>
+          </motion.div>
         ))}
       </div>
 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-bold">📋 Relations</h2>
-        <span className="text-xs text-[#6a6a99]">{contacts.length}/5</span>
+        <span className="text-xs text-[#6a6a99]">{contacts.length} contacts</span>
       </div>
 
       <div className="space-y-3">
         {contacts.map((c, i) => (
-          <div key={i} className="p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/20 flex items-center gap-4">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm ${bgColors[i]}`}>
+          <motion.div 
+            key={i}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.05 }}
+            className="p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/20 flex items-center gap-4"
+          >
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm ${bgColors[i % bgColors.length]}`}>
               {c.name.charAt(0)}
             </div>
             <div className="flex-1">
@@ -95,9 +126,70 @@ export const SocialRadar: React.FC = () => {
             }`}>
               {c.health === 'healthy' ? '✅ Bon' : c.health === 'warning' ? '⚠️ Surveiller' : '🔴 Alerte'}
             </span>
-          </div>
+          </motion.div>
         ))}
       </div>
+
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAddModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-[#1a1a3e] border border-[#7c3aed]/30 rounded-[2rem] p-8 shadow-2xl"
+            >
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="absolute top-6 right-6 text-[#a0a0cc]"
+              >
+                <X size={20} />
+              </button>
+              
+              <h3 className="text-xl font-bold mb-6">Ajouter un contact</h3>
+              
+              <div className="space-y-4 mb-8">
+                <div>
+                  <label className="text-[10px] text-[#6a6a99] uppercase font-bold mb-1.5 block">Nom complet</label>
+                  <input 
+                    value={newContact.name}
+                    onChange={e => setNewContact({...newContact, name: e.target.value})}
+                    className="w-full bg-[#0a0a1a] border border-[#7c3aed]/20 rounded-xl p-3 text-sm outline-none focus:border-[#7c3aed]"
+                    placeholder="Ex: Jean Dupont"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#6a6a99] uppercase font-bold mb-1.5 block">Relation</label>
+                  <select 
+                    value={newContact.relation}
+                    onChange={e => setNewContact({...newContact, relation: e.target.value})}
+                    className="w-full bg-[#0a0a1a] border border-[#7c3aed]/20 rounded-xl p-3 text-sm outline-none focus:border-[#7c3aed]"
+                  >
+                    <option>Ami</option>
+                    <option>Famille</option>
+                    <option>Collègue</option>
+                    <option>Partenaire</option>
+                  </select>
+                </div>
+              </div>
+
+              <button 
+                onClick={handleAdd}
+                className="w-full py-4 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-2xl font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <Check size={18} /> Confirmer l'ajout
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { motion } from 'motion/react';
-import { Calendar, Info } from 'lucide-react';
+import { Calendar, Info, TrendingUp } from 'lucide-react';
+import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 
 export const Predictions: React.FC = () => {
   const { predictions } = useApp();
@@ -46,7 +47,12 @@ export const Predictions: React.FC = () => {
 
       <div className="space-y-4">
         {filteredPredictions.map(p => (
-          <div key={p.id} className="p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/20">
+          <motion.div 
+            key={p.id} 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/20"
+          >
             <div className="flex items-center justify-between mb-3">
               <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
                 p.type === 'health' ? 'bg-emerald-500/10 text-emerald-500' : 
@@ -55,9 +61,9 @@ export const Predictions: React.FC = () => {
               }`}>
                 {p.cat}
               </span>
-              <span className="text-[10px] text-[#6a6a99]">
-                Confiance : <strong className="text-[#06b6d4]">{p.conf}%</strong>
-              </span>
+              <div className="flex items-center gap-1 text-[10px] font-bold text-[#06b6d4]">
+                <TrendingUp size={12} /> {p.conf}% confiance
+              </div>
             </div>
             
             <h3 className="text-sm font-bold mb-1.5">{p.title}</h3>
@@ -67,25 +73,38 @@ export const Predictions: React.FC = () => {
               <Calendar size={12} className="text-[#06b6d4]" /> {p.tl}
             </div>
 
-            <div className="h-16 bg-[#7c3aed]/5 rounded-lg mb-4 flex items-end p-2 gap-1">
-              {p.cd.map((v, i) => (
-                <div 
-                  key={i} 
-                  className="flex-1 rounded-t-sm" 
-                  style={{ 
-                    height: `${v * 0.6}px`, 
-                    backgroundColor: clr[p.type],
-                    opacity: 0.4 + (v / 200)
-                  }} 
-                />
-              ))}
+            {/* Chart Area */}
+            <div className="h-24 w-full mb-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={p.cd.map((v, i) => ({ name: i, value: v }))}>
+                  <defs>
+                    <linearGradient id={`grad-${p.id}`} x1="0" y1="0" x2="0" y2="100%">
+                      <stop offset="5%" stopColor={clr[p.type]} stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor={clr[p.type]} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Area 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke={clr[p.type]} 
+                    fillOpacity={1} 
+                    fill={`url(#grad-${p.id})`} 
+                    strokeWidth={2}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0a0a1a', border: '1px solid rgba(124,58,237,.2)', borderRadius: '8px', fontSize: '10px' }}
+                    itemStyle={{ color: '#fff' }}
+                    labelStyle={{ display: 'none' }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
 
             <div className="p-3 bg-[#06b6d4]/10 rounded-xl flex gap-2">
               <Info size={14} className="text-[#06b6d4] shrink-0 mt-0.5" />
               <p className="text-[10px] text-[#a0a0cc] italic">{p.rec}</p>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

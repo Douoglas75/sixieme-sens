@@ -1,65 +1,90 @@
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
-import { Shield as ShieldIcon, Target, Smartphone, Moon, Search, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Target, Smartphone, Moon, Search, ShieldCheck, Play, Square, Clock, Zap } from 'lucide-react';
 
 export const Shield: React.FC = () => {
-  const [focusMode, setFocusMode] = useState(true);
+  const [focusMode, setFocusMode] = useState(false);
   const [antiScroll, setAntiScroll] = useState(false);
   const [nightMode, setNightMode] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [isFocusing, setIsFocusing] = useState(false);
+
+  useEffect(() => {
+    let interval: any;
+    if (isFocusing && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setIsFocusing(false);
+      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+    }
+    return () => clearInterval(interval);
+  }, [isFocusing, timeLeft]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="space-y-6">
-      <div className="p-6 rounded-[2rem] bg-gradient-to-br from-[#1a1a3e] to-[#0a0a1a] border border-[#7c3aed]/20 text-center">
-        <div className="text-5xl mb-4">🛡️</div>
-        <h2 className="text-lg font-bold mb-1">Bouclier Cognitif</h2>
-        <p className="text-[#a0a0cc] text-xs mb-6">Protection attention & anti-désinformation</p>
+      <div className="p-6 rounded-[2rem] bg-gradient-to-br from-[#1a1a3e] to-[#0a0a1a] border border-[#7c3aed]/20 text-center relative overflow-hidden">
+        {isFocusing && (
+          <motion.div 
+            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute inset-0 bg-[#7c3aed] rounded-full blur-[100px]"
+          />
+        )}
         
-        <div className="space-y-2 mb-6">
-          <div className="flex justify-between text-[10px] font-bold text-[#a0a0cc] uppercase tracking-wider">
-            <span>Capital Attentionnel</span>
-            <span className="text-[#06b6d4]">78%</span>
+        <div className="relative z-10">
+          <div className="text-5xl font-black mb-4 tracking-tighter font-mono">
+            {formatTime(timeLeft)}
           </div>
-          <div className="h-2.5 bg-[#1a1a3e] rounded-full overflow-hidden">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: "78%" }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="h-full bg-gradient-to-r from-[#10b981] to-[#06b6d4] rounded-full"
-            />
+          <h2 className="text-lg font-bold mb-1">Deep Focus</h2>
+          <p className="text-[#a0a0cc] text-xs mb-6">Session de concentration intelligente</p>
+          
+          <div className="flex justify-center gap-4 mb-8">
+            <button 
+              onClick={() => setIsFocusing(!isFocusing)}
+              className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                isFocusing ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50' : 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+              }`}
+            >
+              {isFocusing ? <Square size={24} /> : <Play size={24} className="ml-1" />}
+            </button>
+            {!isFocusing && timeLeft < 25 * 60 && (
+              <button 
+                onClick={() => setTimeLeft(25 * 60)}
+                className="w-14 h-14 rounded-full bg-[#1a1a3e] text-[#a0a0cc] border border-[#7c3aed]/20 flex items-center justify-center"
+              >
+                <Clock size={24} />
+              </button>
+            )}
           </div>
-        </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { val: '23', label: 'Distractions bloquées' },
-            { val: '2h14', label: 'Temps profond' },
-            { val: '+34%', label: 'Productivité' }
-          ].map((stat, i) => (
-            <div key={i} className="p-3 bg-[#7c3aed]/5 rounded-xl border border-white/5">
-              <div className="text-lg font-bold text-[#06b6d4]">{stat.val}</div>
-              <div className="text-[8px] text-[#6a6a99] uppercase leading-tight mt-1">{stat.label}</div>
+          <div className="space-y-2 mb-6 text-left">
+            <div className="flex justify-between text-[10px] font-bold text-[#a0a0cc] uppercase tracking-wider">
+              <span>Capital Attentionnel</span>
+              <span className="text-[#06b6d4]">78%</span>
             </div>
-          ))}
+            <div className="h-2.5 bg-[#1a1a3e] rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: "78%" }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+                className="h-full bg-gradient-to-r from-[#10b981] to-[#06b6d4] rounded-full"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-base font-bold flex items-center gap-2">🎛️ Modes</h2>
+        <h2 className="text-base font-bold flex items-center gap-2">🎛️ Modes de Protection</h2>
         
-        <div className={`p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/20 flex items-center gap-4 transition-all ${focusMode ? 'shadow-lg shadow-[#7c3aed]/10 border-[#7c3aed]/50' : ''}`}>
-          <div className="w-11 h-11 rounded-xl bg-[#7c3aed]/15 flex items-center justify-center text-xl">🎯</div>
-          <div className="flex-1">
-            <h3 className="text-sm font-bold">Deep Focus</h3>
-            <p className="text-[10px] text-[#a0a0cc]">Bloque notifications sauf urgences</p>
-          </div>
-          <button 
-            onClick={() => setFocusMode(!focusMode)}
-            className={`w-11 h-6 rounded-full relative transition-colors ${focusMode ? 'bg-[#7c3aed]' : 'bg-[#111128]'}`}
-          >
-            <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all ${focusMode ? 'left-[22px]' : 'left-0.5'}`} />
-          </button>
-        </div>
-
         <div className={`p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/20 flex items-center gap-4 transition-all ${antiScroll ? 'shadow-lg shadow-[#7c3aed]/10 border-[#7c3aed]/50' : ''}`}>
           <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center text-xl">📱</div>
           <div className="flex-1">
