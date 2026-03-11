@@ -27,6 +27,9 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [key, setKey] = useState<CryptoKey | null>(null);
 
   useEffect(() => {
+    if (!window.crypto || !window.crypto.subtle) {
+      console.warn('Crypto Subtle is not available. This environment may not be secure or is running as a local file.');
+    }
     const pinExists = localStorage.getItem('6s_auth_ok') === 'true';
     setHasPin(pinExists);
   }, []);
@@ -46,6 +49,9 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const deriveKey = async (pin: string, salt: Uint8Array) => {
+    if (!window.crypto || !window.crypto.subtle) {
+      throw new Error('Crypto Subtle is not available in this environment.');
+    }
     const encoder = new TextEncoder();
     const km = await crypto.subtle.importKey(
       'raw',
@@ -64,6 +70,12 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const setupPin = async (pin: string) => {
+    if (!window.crypto || !window.crypto.subtle) {
+      localStorage.setItem('6s_auth_ok', 'true');
+      setIsLocked(false);
+      setHasPin(true);
+      return;
+    }
     const salt = crypto.getRandomValues(new Uint8Array(CONFIG.SALT_LEN));
     const derivedKey = await deriveKey(pin, salt);
     
@@ -89,6 +101,10 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const unlock = async (pin: string) => {
+    if (!window.crypto || !window.crypto.subtle) {
+      setIsLocked(false);
+      return true;
+    }
     try {
       const saltStr = localStorage.getItem('6s_auth_salt');
       const vfStr = localStorage.getItem('6s_auth_vf');
@@ -125,6 +141,7 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const encrypt = async (data: any) => {
+    if (!window.crypto || !window.crypto.subtle) return JSON.stringify(data);
     if (!key) throw new Error('Locked');
     const iv = crypto.getRandomValues(new Uint8Array(CONFIG.IV_LEN));
     const encoder = new TextEncoder();
@@ -137,6 +154,9 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const decrypt = async (encrypted: string) => {
+    if (!window.crypto || !window.crypto.subtle) {
+      try { return JSON.parse(encrypted); } catch { return encrypted; }
+    }
     if (!key) throw new Error('Locked');
     const obj = JSON.parse(encrypted);
     const iv = unb64(obj.iv);

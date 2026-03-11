@@ -100,34 +100,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     const loadData = async () => {
-      if (!isLocked) {
-        let encryptedUser = null;
-        try {
-          const res = await fetch('/api/user/load/default_user');
-          const { data } = await res.json();
-          encryptedUser = data;
-        } catch (e) {
-          console.error('Failed to load from backend', e);
-        }
-
-        if (!encryptedUser) {
-          encryptedUser = localStorage.getItem('6s_user_data');
-        }
-
-        if (encryptedUser) {
+      try {
+        if (!isLocked) {
+          let encryptedUser = null;
           try {
-            const decrypted = await decrypt(encryptedUser);
-            setUserState(decrypted);
-            calculateRealScores(decrypted);
-            updateInsights(decrypted);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000);
+            const res = await fetch('/api/user/load/default_user', { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (res.ok) {
+              const { data } = await res.json();
+              encryptedUser = data;
+            }
           } catch (e) {
-            console.error('Failed to decrypt user data', e);
+            console.warn('Backend unreachable or timed out, using local storage.', e);
           }
-        } else {
-          generateMockData();
+
+          if (!encryptedUser) {
+            encryptedUser = localStorage.getItem('6s_user_data');
+          }
+
+          if (encryptedUser) {
+            try {
+              const decrypted = await decrypt(encryptedUser);
+              setUserState(decrypted);
+              calculateRealScores(decrypted);
+              updateInsights(decrypted);
+            } catch (e) {
+              console.error('Failed to decrypt user data', e);
+            }
+          } else {
+            generateMockData();
+          }
         }
-        setIsLoading(false);
-      } else {
+      } catch (error) {
+        console.error('Critical error during data load:', error);
+      } finally {
         setIsLoading(false);
       }
     };

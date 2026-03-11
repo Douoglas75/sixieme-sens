@@ -22,7 +22,7 @@ export const SplashScreen: React.FC = () => {
           className="w-full h-full rounded-3xl overflow-hidden bg-gradient-to-br from-[#7c3aed] via-[#3b82f6] to-[#06b6d4] flex items-center justify-center"
         >
           <img 
-            src="/icon-512.png" 
+            src="icon-512.png" 
             alt="6S Logo" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
