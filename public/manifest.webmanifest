@@ -5,11 +5,83 @@
   "lang": "fr-FR",
   "start_url": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "minimal-ui"],
+  "display_override": ["window-controls-overlay", "tabbed", "minimal-ui"],
   "background_color": "#0a0a1a",
   "theme_color": "#7c3aed",
   "orientation": "portrait",
   "categories": ["productivity", "utilities", "lifestyle"],
+  "iarc_rating_id": "e58c3351-7ad0-4091-8399-e0a65bf9b7bd",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "launch_handler": {
+    "client_mode": ["focus-existing", "auto"]
+  },
+  "note_taking": {
+    "new_note_url": "/?action=new-note"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "file_handlers": [
+    {
+      "action": "/?action=open-file",
+      "accept": {
+        "text/plain": [".txt"],
+        "application/json": [".json"]
+      },
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ],
+      "launch_type": "single-client"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+6s",
+      "url": "/?uri=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/?action=share",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "widgets": [
+    {
+      "name": "6S Intelligence",
+      "short_name": "6S",
+      "description": "Aperçu de vos prédictions IA",
+      "tag": "intelligence-preview",
+      "template": "widget-template",
+      "ms_ac_template": "widget-ac-template",
+      "data": "/api/widget-data",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "https://picsum.photos/seed/6s-widget/400/400",
+          "sizes": "400x400",
+          "type": "image/jpeg",
+          "label": "Widget Sixième Sens"
+        }
+      ],
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
   "icons": [
     {
       "src": "/icon-192.png",
