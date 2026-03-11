@@ -16,15 +16,28 @@ import { BottomNav } from './components/BottomNav';
 import { TopBar } from './components/TopBar';
 import { AnimatePresence, motion } from 'motion/react';
 
+import { SystemStatus } from './components/SystemStatus';
+import { WifiOff } from 'lucide-react';
+
 const AppContent: React.FC = () => {
   const { isLocked, hasPin } = useSecurity();
   const { user, isLoading } = useApp();
   const [showSplash, setShowSplash] = useState(true);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [activePage, setActivePage] = useState<'home' | 'shield' | 'predictions' | 'social' | 'settings' | 'connections' | 'ghost'>('home');
 
   useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
     const timer = setTimeout(() => setShowSplash(false), 2500);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   if (showSplash) return <SplashScreen />;
@@ -36,7 +49,12 @@ const AppContent: React.FC = () => {
 
   const renderPage = () => {
     switch (activePage) {
-      case 'home': return <Dashboard onNavigate={setActivePage} />;
+      case 'home': return (
+        <div className="space-y-6">
+          <Dashboard onNavigate={setActivePage} />
+          <SystemStatus />
+        </div>
+      );
       case 'shield': return <Shield />;
       case 'predictions': return <Predictions />;
       case 'social': return <SocialRadar />;
@@ -50,6 +68,18 @@ const AppContent: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-[#0a0a1a] text-white overflow-hidden">
       <TopBar onSettings={() => setActivePage('settings')} />
+      
+      {!isOnline && (
+        <motion.div 
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          className="bg-amber-500/20 border-b border-amber-500/30 px-4 py-2 flex items-center justify-center gap-2"
+        >
+          <WifiOff className="w-4 h-4 text-amber-500" />
+          <span className="text-[11px] font-bold text-amber-500 uppercase tracking-wider">Offline Mode — Using Local Intelligence</span>
+        </motion.div>
+      )}
+
       <main className="flex-1 overflow-y-auto pb-24">
         <AnimatePresence mode="wait">
           <motion.div

@@ -6,6 +6,8 @@ interface BottomNavProps {
   onPageChange: (page: any) => void;
 }
 
+import { hapticFeedback } from '../utils/haptics';
+
 export const BottomNav: React.FC<BottomNavProps> = ({ activePage, onPageChange }) => {
   const items = [
     { id: 'home', icon: Home, label: 'Home' },
@@ -15,12 +17,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activePage, onPageChange }
     { id: 'settings', icon: Settings, label: 'Réglages' }
   ];
 
+  const handleNav = (id: string) => {
+    hapticFeedback('light');
+    onPageChange(id);
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-[calc(65px+env(safe-area-inset-bottom,34px))] pb-[env(safe-area-inset-bottom,34px)] bg-[#111128]/95 backdrop-blur-2xl border-t border-[#7c3aed]/15 flex items-center justify-around z-50">
       {items.map(item => (
         <button
           key={item.id}
-          onClick={() => onPageChange(item.id)}
+          onClick={() => handleNav(item.id)}
           className={`flex flex-col items-center gap-1 px-4 py-2 transition-all relative ${
             activePage === item.id ? 'text-[#7c3aed]' : 'text-[#6a6a99]'
           }`}

@@ -151,6 +151,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     loadData();
   }, [isLocked]);
 
+  useEffect(() => {
+    if (!user || isLocked) return;
+
+    const intelligenceInterval = setInterval(() => {
+      // Simulate background intelligence logic
+      const randomChance = Math.random();
+      if (randomChance > 0.95) {
+        const newAlert: Alert = {
+          title: 'Optimisation Détectée',
+          desc: 'L\'IA a identifié une opportunité d\'économie sur vos abonnements.',
+          type: 'green',
+          icon: '💰',
+          time: 'À l\'instant',
+          actions: ['Voir détails']
+        };
+        setAlerts(prev => [newAlert, ...prev.slice(0, 4)]);
+      }
+      
+      // Subtle score fluctuations to show "live" data
+      setScores(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          h: (parseFloat(prev.h) + (Math.random() * 0.1 - 0.05)).toFixed(1),
+          f: (parseFloat(prev.f) + (Math.random() * 0.1 - 0.05)).toFixed(1),
+          t: (parseFloat(prev.t) + (Math.random() * 0.02 - 0.01)).toFixed(1)
+        };
+      });
+    }, 30000); // Every 30 seconds
+
+    return () => clearInterval(intelligenceInterval);
+  }, [user, isLocked]);
+
   const calculateRealScores = (userData: User) => {
     const healthBase = userData.sleep >= 7 ? 8.5 : 6.0;
     const activityBonus = userData.activity === 'athlete' ? 1.5 : userData.activity === 'high' ? 1.0 : 0.5;

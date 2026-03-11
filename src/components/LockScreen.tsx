@@ -3,26 +3,37 @@ import { useSecurity } from '../contexts/SecurityContext';
 import { motion } from 'motion/react';
 import { Lock, Delete } from 'lucide-react';
 
+import { hapticFeedback } from '../utils/haptics';
+
 export const LockScreen: React.FC = () => {
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
   const { unlock } = useSecurity();
 
   const handleKey = async (n: string) => {
+    hapticFeedback('light');
     if (pin.length < 4) {
       const newPin = pin + n;
       setPin(newPin);
       if (newPin.length === 4) {
         const success = await unlock(newPin);
         if (!success) {
+          hapticFeedback('error');
           setError(true);
           setTimeout(() => {
             setPin('');
             setError(false);
           }, 600);
+        } else {
+          hapticFeedback('success');
         }
       }
     }
+  };
+
+  const handleBackspace = () => {
+    hapticFeedback('medium');
+    setPin(prev => prev.slice(0, -1));
   };
 
   return (
@@ -62,7 +73,7 @@ export const LockScreen: React.FC = () => {
           0
         </button>
         <button 
-          onClick={() => setPin(prev => prev.slice(0, -1))}
+          onClick={handleBackspace}
           className="w-20 h-20 flex items-center justify-center text-[#6a6a99]"
         >
           <Delete size={24} />
