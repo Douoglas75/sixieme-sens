@@ -53,6 +53,7 @@ export interface GhostTask {
   st: 'completed' | 'progress' | 'available';
   stl: string;
   sav?: string;
+  progress?: number;
 }
 
 export interface Device {
@@ -62,6 +63,7 @@ export interface Device {
   type: string;
   signal: string;
   connected?: boolean;
+  connecting?: boolean;
 }
 
 export interface AppConnection {
@@ -71,6 +73,7 @@ export interface AppConnection {
   name: string;
   desc: string;
   linked?: boolean;
+  linking?: boolean;
 }
 
 export interface Permission {

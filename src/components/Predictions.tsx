@@ -5,7 +5,7 @@ import { Calendar, Info, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 
 export const Predictions: React.FC = () => {
-  const { predictions } = useApp();
+  const { predictions, dismissPrediction } = useApp();
   const [filter, setFilter] = useState('all');
 
   const filteredPredictions = filter === 'all' 
@@ -100,9 +100,20 @@ export const Predictions: React.FC = () => {
               </ResponsiveContainer>
             </div>
 
-            <div className="p-3 bg-[#06b6d4]/10 rounded-xl flex gap-2">
-              <Info size={14} className="text-[#06b6d4] shrink-0 mt-0.5" />
-              <p className="text-[10px] text-[#a0a0cc] italic">{p.rec}</p>
+            <div className="p-3 bg-[#06b6d4]/10 rounded-xl flex flex-col gap-3">
+              <div className="flex gap-2">
+                <Info size={14} className="text-[#06b6d4] shrink-0 mt-0.5" />
+                <p className="text-[10px] text-[#a0a0cc] italic">{p.rec}</p>
+              </div>
+              <button 
+                onClick={() => {
+                  alert(`Recommandation appliquée : ${p.rec}`);
+                  dismissPrediction(p.id);
+                }}
+                className="w-full py-2 bg-[#06b6d4]/20 text-[#06b6d4] rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-[#06b6d4]/30 transition-all active:scale-95"
+              >
+                Appliquer la recommandation
+              </button>
             </div>
           </motion.div>
         ))}

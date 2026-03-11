@@ -109,16 +109,21 @@ export const SocialRadar: React.FC = () => {
             <div className="flex-1">
               <h3 className="text-sm font-bold">{c.name}</h3>
               <p className="text-[10px] text-[#a0a0cc]">{c.relation} · Il y a {c.lastContact}j</p>
-              {c.health !== 'healthy' && (
-                <div className="flex gap-2 mt-2">
-                  <button className="px-3 py-1.5 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-lg text-[10px] font-bold flex items-center gap-1">
-                    <Phone size={10} /> Appeler
-                  </button>
-                  <button className="px-3 py-1.5 bg-[#0a0a1a] rounded-lg text-[10px] font-bold flex items-center gap-1 text-[#a0a0cc]">
-                    <MessageSquare size={10} /> Message
-                  </button>
-                </div>
-              )}
+              
+              <div className="flex gap-2 mt-2">
+                <button 
+                  onClick={() => alert(`Nudge envoyé à ${c.name}`)}
+                  className="px-3 py-1.5 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-lg text-[10px] font-bold flex items-center gap-1 hover:brightness-110 transition-all active:scale-95"
+                >
+                  <MessageSquare size={10} /> Nudge
+                </button>
+                <button 
+                  onClick={() => alert(`Appel programmé avec ${c.name}`)}
+                  className="px-3 py-1.5 bg-[#0a0a1a] rounded-lg text-[10px] font-bold flex items-center gap-1 text-[#a0a0cc] border border-white/5 hover:border-[#7c3aed]/30 transition-all active:scale-95"
+                >
+                  <Phone size={10} /> Appel
+                </button>
+              </div>
             </div>
             <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold ${
               c.health === 'healthy' ? 'bg-emerald-500/10 text-emerald-500' : 

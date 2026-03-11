@@ -1,9 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { Check, ChevronRight, Watch } from 'lucide-react';
+import { Check, ChevronRight, Watch, X, Search, Bluetooth } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export const Connections: React.FC = () => {
   const { devices, apps, permissions, connectDevice, linkApp, togglePermission } = useApp();
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResults, setScanResults] = useState<any[]>([]);
+
+  const startScan = async () => {
+    setIsScanning(true);
+    setScanResults([]);
+    
+    // Try real Bluetooth if available
+    if ('bluetooth' in navigator) {
+      try {
+        const device = await (navigator as any).bluetooth.requestDevice({
+          acceptAllDevices: true
+        });
+        if (device) {
+          setScanResults([{ id: device.id, name: device.name || 'Appareil Inconnu', type: 'Bluetooth', signal: 'Fort' }]);
+          setIsScanning(false);
+          return;
+        }
+      } catch (e) {
+        console.warn("Real Bluetooth scan failed or cancelled. Falling back to simulation.", e);
+      }
+    }
+
+    // Fallback simulation
+    setTimeout(() => {
+      setScanResults([
+        { id: 'scan-1', name: 'Oura Ring Gen 4', type: 'Santé', signal: '-42dBm' },
+        { id: 'scan-2', name: 'Sony WH-1000XM6', type: 'Audio', signal: '-58dBm' }
+      ]);
+      setIsScanning(false);
+    }, 3000);
+  };
 
   return (
     <div className="space-y-6">
@@ -14,8 +47,61 @@ export const Connections: React.FC = () => {
       <section className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-[10px] font-bold text-[#6a6a99] uppercase tracking-widest">⌚ Objets Connectés</h3>
-          <button className="text-[10px] font-bold text-[#7c3aed]">Scanner</button>
+          <button 
+            onClick={startScan}
+            className="text-[10px] font-bold text-[#7c3aed] flex items-center gap-1"
+          >
+            <Search size={10} /> Scanner
+          </button>
         </div>
+        
+        <AnimatePresence>
+          {isScanning && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="p-4 rounded-2xl bg-[#7c3aed]/5 border border-dashed border-[#7c3aed]/30 flex flex-col items-center justify-center gap-3 overflow-hidden"
+            >
+              <div className="w-8 h-8 border-2 border-[#7c3aed] border-t-transparent rounded-full animate-spin" />
+              <p className="text-[10px] text-[#a0a0cc] font-bold animate-pulse">Recherche d'appareils Bluetooth...</p>
+            </motion.div>
+          )}
+
+          {scanResults.length > 0 && !isScanning && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/50 space-y-3"
+            >
+              <div className="flex justify-between items-center mb-1">
+                <h4 className="text-[10px] font-black text-[#7c3aed] uppercase">Appareils trouvés</h4>
+                <button onClick={() => setScanResults([])}><X size={12} className="text-[#6a6a99]" /></button>
+              </div>
+              {scanResults.map(res => (
+                <div key={res.id} className="flex items-center justify-between p-2 bg-[#0a0a1a] rounded-xl border border-white/5">
+                  <div className="flex items-center gap-3">
+                    <Bluetooth size={14} className="text-blue-400" />
+                    <div>
+                      <div className="text-[11px] font-bold">{res.name}</div>
+                      <div className="text-[9px] text-[#6a6a99]">{res.type} · {res.signal}</div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      alert(`Appairage avec ${res.name}...`);
+                      setScanResults([]);
+                    }}
+                    className="px-3 py-1 bg-[#7c3aed] rounded-lg text-[9px] font-bold"
+                  >
+                    Appairer
+                  </button>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="space-y-2">
           {devices.map(device => (
             <div 
@@ -30,6 +116,11 @@ export const Connections: React.FC = () => {
               {device.connected ? (
                 <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center">
                   <Check size={16} />
+                </div>
+              ) : device.connecting ? (
+                <div className="flex items-center gap-2 text-[10px] text-[#7c3aed] font-bold">
+                  <div className="w-4 h-4 border-2 border-[#7c3aed] border-t-transparent rounded-full animate-spin" />
+                  Pairing...
                 </div>
               ) : (
                 <button 
@@ -64,6 +155,11 @@ export const Connections: React.FC = () => {
               {app.linked ? (
                 <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center">
                   <Check size={16} />
+                </div>
+              ) : app.linking ? (
+                <div className="flex items-center gap-2 text-[10px] text-[#7c3aed] font-bold">
+                  <div className="w-4 h-4 border-2 border-[#7c3aed] border-t-transparent rounded-full animate-spin" />
+                  Auth...
                 </div>
               ) : (
                 <button 

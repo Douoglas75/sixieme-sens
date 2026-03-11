@@ -70,6 +70,22 @@ export const GhostAdmin: React.FC = () => {
               </span>
             </div>
 
+            {task.st === 'progress' && task.progress !== undefined && (
+              <div className="mb-3">
+                <div className="flex justify-between text-[8px] text-[#6a6a99] uppercase mb-1">
+                  <span>Progression</span>
+                  <span>{Math.round(task.progress)}%</span>
+                </div>
+                <div className="h-1.5 bg-[#0a0a1a] rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-[#7c3aed]"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${task.progress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
             {task.sav && (
               <div className="p-2.5 bg-emerald-500/10 rounded-xl flex items-center gap-2 text-[10px] text-emerald-400 font-medium">
                 <PiggyBank size={14} />

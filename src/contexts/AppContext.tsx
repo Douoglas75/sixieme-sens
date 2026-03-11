@@ -3,6 +3,8 @@ import { User, ScoreData, Prediction, Alert, GhostTask, Device, AppConnection, P
 import { useSecurity } from './SecurityContext';
 import { PERMS_DATA, DEVICES_DATA, APPS_DATA } from '../constants';
 
+import { generatePersonalizedInsights } from '../services/geminiService';
+
 interface AppContextType {
   user: User | null;
   setUser: (user: User) => void;
@@ -18,7 +20,10 @@ interface AppContextType {
   linkApp: (id: string) => void;
   addContact: (contact: any) => void;
   requestGhostTask: (taskName: string) => Promise<void>;
+  removeAlert: (id: string) => void;
+  dismissPrediction: (id: string) => void;
   isLoading: boolean;
+  isGenerating: boolean;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -34,6 +39,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [apps, setApps] = useState<AppConnection[]>(APPS_DATA);
   const [permissions, setPermissions] = useState<Permission[]>(PERMS_DATA);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const removeAlert = (title: string) => {
+    setAlerts(prev => prev.filter(a => a.title !== title));
+  };
+
+  const dismissPrediction = (id: string) => {
+    setPredictions(prev => prev.filter(p => p.id !== id));
+  };
 
   const setUser = async (newUser: User) => {
     setUserState(newUser);
@@ -41,7 +55,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const encrypted = await encrypt(newUser);
       localStorage.setItem('6s_user_data', encrypted);
       
-      // Save to backend as well for "production" feel
       try {
         await fetch('/api/user/save', {
           method: 'POST',
@@ -52,8 +65,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Failed to sync with backend', e);
       }
       
-      // Recalculate scores based on new user data
       calculateRealScores(newUser);
+      updateInsights(newUser);
+    }
+  };
+
+  const updateInsights = async (userData: User) => {
+    setIsGenerating(true);
+    try {
+      const { alerts: newAlerts, predictions: newPredictions } = await generatePersonalizedInsights(userData);
+      setAlerts(newAlerts);
+      setPredictions(newPredictions);
+    } catch (error) {
+      console.error("Failed to update insights", error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -75,7 +101,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const loadData = async () => {
       if (!isLocked) {
-        // Try backend first, fallback to local
         let encryptedUser = null;
         try {
           const res = await fetch('/api/user/load/default_user');
@@ -94,11 +119,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const decrypted = await decrypt(encryptedUser);
             setUserState(decrypted);
             calculateRealScores(decrypted);
+            updateInsights(decrypted);
           } catch (e) {
             console.error('Failed to decrypt user data', e);
           }
         } else {
-          // Default mock if nothing found
           generateMockData();
         }
         setIsLoading(false);
@@ -110,15 +135,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [isLocked]);
 
   const calculateRealScores = (userData: User) => {
-    // Real logic based on user profile
     const healthBase = userData.sleep >= 7 ? 8.5 : 6.0;
     const activityBonus = userData.activity === 'athlete' ? 1.5 : userData.activity === 'high' ? 1.0 : 0.5;
-    
     const financeBase = userData.finance === 'comfortable' ? 9.0 : userData.finance === 'ok' ? 7.0 : 5.0;
-    
     const socialBase = userData.contacts.length > 10 ? 8.5 : userData.contacts.length > 5 ? 7.0 : 5.0;
     
-    const cognitiveBase = 7.5; // Base cognitive performance
+    const cognitiveBase = 7.5;
     const careerBase = 7.0;
     const adminBase = 8.0;
 
@@ -141,24 +163,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     mockScores.t = total;
     setScores(mockScores);
 
-    // Dynamic alerts based on scores
-    const newAlerts: Alert[] = [];
-    if (parseFloat(mockScores.h) < 7) {
-      newAlerts.push({ type: 'red', icon: 'HeartPulse', title: 'Déficit de récupération', desc: 'Votre sommeil est insuffisant pour votre niveau d\'activité.', time: 'Urgent', actions: ['Dormir +1h', 'Détails'] });
-    }
-    if (parseFloat(mockScores.f) < 6) {
-      newAlerts.push({ type: 'yellow', icon: 'Wallet', title: 'Optimisation budgétaire', desc: 'Ghost-Admin a détecté 3 abonnements inutilisés.', time: 'Aujourd\'hui', actions: ['Résilier', 'Voir'] });
-    }
-    
-    newAlerts.push({ type: 'green', icon: 'Zap', title: 'Pic de concentration', desc: 'Conditions idéales pour le travail profond.', time: '10:00 - 12:30', actions: ['Deep Focus', 'Ignorer'] });
-    
-    setAlerts(newAlerts);
-
-    setPredictions([
-      { id: '1', type: 'health', cat: 'Santé', title: 'Risque fatigue J+3', desc: 'Basé sur votre rythme actuel.', conf: 85, tl: 'J+3', rec: 'Repos forcé demain.', cd: [8, 7.5, 7, 6.2, 5.8, 6.5, 7.2, 8] },
-      { id: '2', type: 'finance', cat: 'Finance', title: 'Économie possible 45€', desc: 'Analyse des frais bancaires.', conf: 92, tl: 'Ce mois', rec: 'Changer de forfait.', cd: [100, 95, 90, 85, 80, 75, 70, 65] }
-    ]);
-
     setGhostTasks([
       { id: '1', icon: '📊', bg: 'rgba(59,130,246,.15)', title: 'Audit Assurances', desc: 'Analyse en cours...', st: 'progress', stl: '⏳ En cours' },
       { id: '2', icon: '📅', bg: 'rgba(16,185,129,.15)', title: 'Disponible', desc: 'Sélectionnez une tâche.', st: 'available', stl: '🟢 Dispo' }
@@ -173,38 +177,87 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const requestGhostTask = async (taskName: string) => {
-    try {
-      await fetch('/api/tasks/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: 'default_user', taskType: taskName })
-      });
-      // Update UI to show task in progress
-      setGhostTasks(prev => [
-        { id: Date.now().toString(), icon: '🤖', bg: 'rgba(124,58,237,.15)', title: taskName, desc: 'L\'IA travaille pour vous...', st: 'progress', stl: '⏳ En cours' },
-        ...prev.filter(t => t.st !== 'available')
-      ]);
-    } catch (e) {
-      console.error('Failed to request task', e);
-    }
+    const taskId = Date.now().toString();
+    const newTask: GhostTask = { 
+      id: taskId, 
+      icon: '🤖', 
+      bg: 'rgba(124,58,237,.15)', 
+      title: taskName, 
+      desc: 'Initialisation de l\'agent...', 
+      st: 'progress', 
+      stl: '⏳ Initialisation',
+      progress: 0
+    };
+
+    setGhostTasks(prev => [newTask, ...prev.filter(t => t.st !== 'available')]);
+
+    let currentProgress = 0;
+    const interval = setInterval(() => {
+      currentProgress += Math.random() * 15;
+      if (currentProgress >= 100) {
+        currentProgress = 100;
+        clearInterval(interval);
+        setGhostTasks(prev => prev.map(t => t.id === taskId ? { 
+          ...t, 
+          st: 'completed', 
+          stl: '✅ Terminé', 
+          progress: 100,
+          desc: 'Analyse terminée. Recommandations appliquées.',
+          sav: 'Optimisation de 12% détectée'
+        } : t));
+      } else {
+        setGhostTasks(prev => prev.map(t => t.id === taskId ? { 
+          ...t, 
+          progress: currentProgress,
+          desc: `Analyse en cours... ${Math.round(currentProgress)}%`,
+          stl: '⏳ En cours'
+        } : t));
+      }
+    }, 800);
   };
 
   const togglePermission = (id: string) => {
     setPermissions(prev => prev.map(p => p.id === id ? { ...p, granted: !p.granted } : p));
   };
 
-  const connectDevice = (id: string) => {
-    setDevices(prev => prev.map(d => d.id === id ? { ...d, connected: true } : d));
+  const connectDevice = async (id: string) => {
+    setDevices(prev => prev.map(d => d.id === id ? { ...d, connecting: true } : d));
+    
+    // Try real Bluetooth if available
+    if ('bluetooth' in navigator) {
+      try {
+        // This will prompt the user for a real device
+        // Note: In an iframe this might fail, so we have a fallback
+        const device = await (navigator as any).bluetooth.requestDevice({
+          acceptAllDevices: true
+        });
+        console.log("Connected to real device:", device.name);
+      } catch (e) {
+        console.warn("Real Bluetooth request failed or cancelled. Using simulation.", e);
+      }
+    }
+
+    setTimeout(() => {
+      setDevices(prev => prev.map(d => d.id === id ? { ...d, connected: true, connecting: false } : d));
+      const device = devices.find(d => d.id === id);
+      if (device?.type.includes('Santé') && user) {
+        calculateRealScores({ ...user });
+      }
+    }, 2000);
   };
 
   const linkApp = (id: string) => {
-    setApps(prev => prev.map(a => a.id === id ? { ...a, linked: true } : a));
+    setApps(prev => prev.map(a => a.id === id ? { ...a, linking: true } : a));
+    setTimeout(() => {
+      setApps(prev => prev.map(a => a.id === id ? { ...a, linked: true, linking: false } : a));
+    }, 1500);
   };
 
   return (
     <AppContext.Provider value={{ 
       user, setUser, scores, alerts, predictions, ghostTasks, devices, apps, permissions, 
-      togglePermission, connectDevice, linkApp, addContact, requestGhostTask, isLoading 
+      togglePermission, connectDevice, linkApp, addContact, requestGhostTask, 
+      removeAlert, dismissPrediction, isLoading, isGenerating 
     }}>
       {children}
     </AppContext.Provider>

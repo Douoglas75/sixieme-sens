@@ -10,7 +10,7 @@ interface SettingsProps {
 
 export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
   const { lock } = useSecurity();
-  const { user, setUser } = useApp();
+  const { user, setUser, scores } = useApp();
   const [cloudSync, setCloudSync] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [editUser, setEditUser] = useState(user || { name: '', sleep: 7, activity: 'medium', finance: 'ok', contacts: [] });
@@ -94,6 +94,39 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
               <Brain size={18} className="text-[#7c3aed]" />
               <span className="flex-1 text-sm">Précision IA</span>
               <span className="text-xs font-bold text-[#06b6d4]">68%</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-2">
+          <h3 className="text-[10px] font-bold text-[#6a6a99] uppercase tracking-widest px-1">Données</h3>
+          <div className="space-y-1.5">
+            <div 
+              onClick={() => {
+                const data = JSON.stringify({ user, scores }, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '6s_data_export.json';
+                a.click();
+              }}
+              className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl cursor-pointer active:scale-[0.98] transition-all"
+            >
+              <Download size={18} className="text-[#a0a0cc]" />
+              <span className="flex-1 text-sm">Exporter mes données</span>
+            </div>
+            <div 
+              onClick={() => {
+                if (window.confirm('Voulez-vous vraiment réinitialiser toutes vos données ? Cette action est irréversible.')) {
+                  localStorage.clear();
+                  window.location.reload();
+                }
+              }}
+              className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl cursor-pointer active:scale-[0.98] transition-all text-red-400"
+            >
+              <Trash2 size={18} />
+              <span className="flex-1 text-sm">Réinitialiser l'application</span>
             </div>
           </div>
         </section>

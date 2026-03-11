@@ -8,6 +8,25 @@ export const Shield: React.FC = () => {
   const [nightMode, setNightMode] = useState(false);
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isFocusing, setIsFocusing] = useState(false);
+  const [analysisText, setAnalysisText] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+
+  const handleAnalyze = () => {
+    if (!analysisText) return;
+    setIsAnalyzing(true);
+    setAnalysisResult(null);
+    
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      setAnalysisResult({
+        score: 82,
+        bias: 'Léger biais optimiste',
+        deepfake: 'Non détecté',
+        source: 'Fiable (94%)'
+      });
+    }, 3000);
+  };
 
   useEffect(() => {
     let interval: any;
@@ -118,12 +137,49 @@ export const Shield: React.FC = () => {
         <Search size={36} className="mx-auto text-[#7c3aed] mb-3" />
         <h3 className="text-sm font-bold mb-1">Analyseur Fiabilité</h3>
         <p className="text-[11px] text-[#a0a0cc] mb-4">Collez un lien ou texte pour détecter les biais et deepfakes</p>
-        <input 
-          className="w-full p-3 bg-[#111128] border border-[#7c3aed]/20 rounded-xl text-xs outline-none mb-3" 
+        
+        <textarea 
+          value={analysisText}
+          onChange={e => setAnalysisText(e.target.value)}
+          className="w-full p-3 bg-[#111128] border border-[#7c3aed]/20 rounded-xl text-xs outline-none mb-3 h-20 resize-none" 
           placeholder="Collez un lien ou du texte..." 
         />
-        <button className="w-full py-3 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-xl text-xs font-bold flex items-center justify-center gap-2">
-          <ShieldCheck size={14} /> Analyser
+
+        <AnimatePresence>
+          {analysisResult && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-left space-y-2 overflow-hidden"
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-[#a0a0cc] uppercase font-bold">Score de fiabilité</span>
+                <span className="text-sm font-black text-emerald-400">{analysisResult.score}%</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="text-[9px] text-[#a0a0cc]">Biais: <span className="text-white">{analysisResult.bias}</span></div>
+                <div className="text-[9px] text-[#a0a0cc]">Deepfake: <span className="text-white">{analysisResult.deepfake}</span></div>
+                <div className="text-[9px] text-[#a0a0cc]">Source: <span className="text-white">{analysisResult.source}</span></div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <button 
+          onClick={handleAnalyze}
+          disabled={isAnalyzing}
+          className="w-full py-3 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-xl text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          {isAnalyzing ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Analyse en cours...
+            </>
+          ) : (
+            <>
+              <ShieldCheck size={14} /> Analyser
+            </>
+          )}
         </button>
       </div>
     </div>

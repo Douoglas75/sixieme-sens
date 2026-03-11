@@ -9,17 +9,25 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
-  const { user, scores, alerts } = useApp();
+  const { user, scores, alerts, removeAlert, isGenerating } = useApp();
 
   if (!user || !scores) return null;
 
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">Bonjour, {user.name} 👋</h1>
-        <p className="text-[#a0a0cc] text-sm">
-          {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
-        </p>
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold mb-1">Bonjour, {user.name} 👋</h1>
+          <p className="text-[#a0a0cc] text-sm">
+            {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+        </div>
+        {isGenerating && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#7c3aed]/10 rounded-full border border-[#7c3aed]/20">
+            <div className="w-3 h-3 border-2 border-[#7c3aed] border-t-transparent rounded-full animate-spin" />
+            <span className="text-[10px] font-bold text-[#7c3aed] uppercase tracking-widest">Analyse IA...</span>
+          </div>
+        )}
       </div>
 
       {/* Life Score Card */}
@@ -114,7 +122,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   {alert.actions.map((action, j) => (
                     <button 
                       key={j}
-                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold ${
+                      onClick={() => {
+                        window.alert(`Action "${action}" exécutée.`);
+                        removeAlert(alert.title);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95 ${
                         j === 0 ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white' : 'bg-[#0a0a1a] text-[#a0a0cc]'
                       }`}
                     >
