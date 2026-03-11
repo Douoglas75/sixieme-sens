@@ -1,10 +1,10 @@
 const CACHE_NAME = '6s-v2';
 const ASSETS = [
-  './',
-  'index.html',
-  'manifest.json',
-  'icon-192.png',
-  'icon-512.png'
+  '/',
+  '/index.html',
+  '/manifest.webmanifest',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 // Install: Cache core assets
@@ -65,8 +65,8 @@ self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : { title: '6S Alert', body: 'New intelligence update.' };
   const options = {
     body: data.body,
-    icon: 'icon-192.png',
-    badge: 'icon-192.png',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
     vibrate: [100, 50, 100],
     data: { url: self.location.origin }
   };
