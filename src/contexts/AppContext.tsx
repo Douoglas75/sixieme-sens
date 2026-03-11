@@ -104,10 +104,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (!isLocked) {
           let encryptedUser = null;
           try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2000);
-            const res = await fetch('/api/user/load/default_user', { signal: controller.signal });
-            clearTimeout(timeoutId);
+            // Add a timeout to the fetch to prevent hanging in APK/Offline mode
+            let signal = null;
+            let timeoutId = null;
+            
+            if (typeof AbortController !== 'undefined') {
+              const controller = new AbortController();
+              timeoutId = setTimeout(() => controller.abort(), 2000);
+              signal = controller.signal;
+            }
+            
+            const res = await fetch('/api/user/load/default_user', { signal });
+            if (timeoutId) clearTimeout(timeoutId);
+            
             if (res.ok) {
               const { data } = await res.json();
               encryptedUser = data;
