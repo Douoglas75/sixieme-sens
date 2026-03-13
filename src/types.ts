@@ -35,13 +35,18 @@ export interface Prediction {
   cd: number[];
 }
 
+export interface AlertAction {
+  label: string;
+  onClick?: () => void;
+}
+
 export interface Alert {
   type: 'red' | 'yellow' | 'green';
   icon: string;
   title: string;
   desc: string;
   time: string;
-  actions: string[];
+  actions: (string | AlertAction)[];
 }
 
 export interface GhostTask {
@@ -64,6 +69,8 @@ export interface Device {
   signal: string;
   connected?: boolean;
   connecting?: boolean;
+  difficulty?: 'easy' | 'moderate' | 'hard';
+  stability?: 'high' | 'medium' | 'low';
 }
 
 export interface AppConnection {
@@ -74,6 +81,8 @@ export interface AppConnection {
   desc: string;
   linked?: boolean;
   linking?: boolean;
+  difficulty?: 'easy' | 'moderate' | 'hard';
+  stability?: 'high' | 'medium' | 'low';
 }
 
 export interface Permission {

@@ -9,7 +9,8 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
-  const { user, scores, alerts, removeAlert, isGenerating } = useApp();
+  const { user, scores, alerts, removeAlert, isGenerating, devices, apps, liveData } = useApp();
+  const isLive = devices.some(d => d.connected) || apps.some(a => a.linked);
 
   if (!user || !scores) return null;
 
@@ -18,9 +19,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       <div className="mb-6 flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold mb-1">Bonjour, {user.name} 👋</h1>
-          <p className="text-[#a0a0cc] text-sm">
-            {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-[#a0a0cc] text-sm">
+              {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+            {isLive && (
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-widest">Live</span>
+              </div>
+            )}
+          </div>
         </div>
         {isGenerating && (
           <div className="flex items-center gap-2 px-3 py-1.5 bg-[#7c3aed]/10 rounded-full border border-[#7c3aed]/20">
@@ -83,18 +92,55 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
       </div>
 
+      {/* Real-time Health Widget (Only if connected) */}
+      {isLive && liveData.some(d => d.type === 'heart_rate') && (
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
+              <HeartPulse size={20} className="animate-pulse" />
+            </div>
+            <div>
+              <p className="text-[10px] text-[#a0a0cc] uppercase font-bold tracking-widest">Rythme Cardiaque</p>
+              <h3 className="text-xl font-black text-white">
+                {liveData.find(d => d.type === 'heart_rate')?.value} <span className="text-xs font-normal text-[#6a6a99]">BPM</span>
+              </h3>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-[8px] text-emerald-400 font-bold uppercase mb-1">Stable</p>
+            <div className="flex gap-0.5">
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className={`w-1 h-3 rounded-full ${i < 4 ? 'bg-red-500' : 'bg-red-500/20'}`} />
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Alerts Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold flex items-center gap-2">
             <Zap size={18} className="text-amber-400" /> Alertes Prédictives
           </h2>
-          <span 
-            onClick={() => onNavigate('predictions')}
-            className="text-xs text-[#7c3aed] font-bold cursor-pointer"
-          >
-            Tout voir
-          </span>
+          <div className="flex gap-3">
+            <span 
+              onClick={() => onNavigate('statistics')}
+              className="text-xs text-[#06b6d4] font-bold cursor-pointer"
+            >
+              Stats
+            </span>
+            <span 
+              onClick={() => onNavigate('predictions')}
+              className="text-xs text-[#7c3aed] font-bold cursor-pointer"
+            >
+              Tout voir
+            </span>
+          </div>
         </div>
         
         <div className="space-y-3">
@@ -119,20 +165,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   <Clock size={10} /> {alert.time}
                 </div>
                 <div className="flex gap-2">
-                  {alert.actions.map((action, j) => (
-                    <button 
-                      key={j}
-                      onClick={() => {
-                        window.alert(`Action "${action}" exécutée.`);
-                        removeAlert(alert.title);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95 ${
-                        j === 0 ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white' : 'bg-[#0a0a1a] text-[#a0a0cc]'
-                      }`}
-                    >
-                      {action}
-                    </button>
-                  ))}
+                  {alert.actions.map((action, j) => {
+                    const isObject = typeof action === 'object';
+                    const label = isObject ? action.label : action;
+                    const onClick = isObject ? action.onClick : undefined;
+
+                    return (
+                      <button 
+                        key={j}
+                        onClick={() => {
+                          if (onClick) onClick();
+                          removeAlert(alert.title);
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95 ${
+                          j === 0 ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white' : 'bg-[#0a0a1a] text-[#a0a0cc]'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>

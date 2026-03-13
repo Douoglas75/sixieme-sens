@@ -90,13 +90,43 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-data') {
     console.log('[SW] Background Syncing data...');
-    // In a real app, you'd fetch pending data from IndexedDB and send to server
+    event.waitUntil(
+      // Simulate a background data sync
+      new Promise((resolve) => {
+        setTimeout(() => {
+          console.log('[SW] Data synced successfully');
+          self.registration.showNotification('6S — Intelligence Synchronisée', {
+            body: 'Vos données ont été mises à jour en arrière-plan.',
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
+            tag: 'sync-notification'
+          });
+          resolve();
+        }, 3000);
+      })
+    );
   }
 });
 
 // Periodic Sync Listener
 self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'daily-update') {
+  if (event.tag === 'intelligence-update') {
     console.log('[SW] Periodic Sync: Fetching daily intelligence...');
+    event.waitUntil(
+      // Simulate fetching new intelligence data
+      fetch('/api/intelligence-update').then(response => {
+        if (response.ok) {
+          return self.registration.showNotification('6S — Nouvelles Prédictions', {
+            body: 'De nouvelles analyses sont disponibles pour votre journée.',
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
+            tag: 'periodic-update'
+          });
+        }
+      }).catch(() => {
+        // Fallback if network fails during periodic sync
+        console.log('[SW] Periodic sync failed, will retry later.');
+      })
+    );
   }
 });

@@ -4,6 +4,7 @@ import { useSecurity } from './SecurityContext';
 import { PERMS_DATA, DEVICES_DATA, APPS_DATA } from '../constants';
 
 import { generatePersonalizedInsights } from '../services/geminiService';
+import { dataIntelligence, RealTimeData } from '../services/dataIntelligence';
 
 interface AppContextType {
   user: User | null;
@@ -15,13 +16,17 @@ interface AppContextType {
   devices: Device[];
   apps: AppConnection[];
   permissions: Permission[];
+  liveData: RealTimeData[];
   togglePermission: (id: string) => void;
   connectDevice: (id: string) => void;
+  addDevice: (device: Device) => void;
   linkApp: (id: string) => void;
   addContact: (contact: any) => void;
   requestGhostTask: (taskName: string) => Promise<void>;
   removeAlert: (id: string) => void;
+  addAlert: (alert: Alert) => void;
   dismissPrediction: (id: string) => void;
+  syncBluetoothDevices: () => Promise<void>;
   isLoading: boolean;
   isGenerating: boolean;
 }
@@ -38,11 +43,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [devices, setDevices] = useState<Device[]>(DEVICES_DATA);
   const [apps, setApps] = useState<AppConnection[]>(APPS_DATA);
   const [permissions, setPermissions] = useState<Permission[]>(PERMS_DATA);
+  const [liveData, setLiveData] = useState<RealTimeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Subscribe to real-time data
+  useEffect(() => {
+    const unsubscribe = dataIntelligence.subscribe((data) => {
+      setLiveData(prev => [data, ...prev].slice(0, 50));
+    });
+    return unsubscribe;
+  }, []);
+
+  // Update data stream based on connections
+  useEffect(() => {
+    const connectedDevices = devices.filter(d => d.connected).map(d => d.id);
+    const connectedApps = apps.filter(a => a.linked).map(a => a.id);
+    dataIntelligence.startDataStream(connectedDevices, connectedApps);
+    return () => dataIntelligence.stopDataStream();
+  }, [devices, apps]);
+
   const removeAlert = (title: string) => {
     setAlerts(prev => prev.filter(a => a.title !== title));
+  };
+
+  const addAlert = (alert: Alert) => {
+    setAlerts(prev => [alert, ...prev.slice(0, 9)]);
+    
+    // Real browser notification if permitted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(alert.title, {
+        body: alert.desc,
+        icon: '/icon-192.png'
+      });
+    }
+  };
+
+  const analyzeConnection = (item: Device | AppConnection) => {
+    if (item.difficulty === 'hard') {
+      addAlert({
+        title: 'Connexion Complexe',
+        desc: `L'intégration avec ${item.name} est instable en raison de restrictions API tierces. La récupération des données peut être intermittente.`,
+        type: 'yellow',
+        icon: '⚠️',
+        time: 'À l\'instant',
+        actions: ['En savoir plus']
+      });
+    } else if (item.difficulty === 'easy') {
+      addAlert({
+        title: 'Intégration Optimale',
+        desc: `${item.name} utilise des protocoles standard. La connexion sera stable même après les mises à jour de l'application tierce.`,
+        type: 'green',
+        icon: '🛡️',
+        time: 'À l\'instant',
+        actions: []
+      });
+    }
   };
 
   const dismissPrediction = (id: string) => {
@@ -155,36 +211,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!user || isLocked) return;
 
     const intelligenceInterval = setInterval(() => {
-      // Simulate background intelligence logic
-      const randomChance = Math.random();
-      if (randomChance > 0.95) {
-        const newAlert: Alert = {
-          title: 'Optimisation Détectée',
-          desc: 'L\'IA a identifié une opportunité d\'économie sur vos abonnements.',
-          type: 'green',
-          icon: '💰',
-          time: 'À l\'instant',
-          actions: ['Voir détails']
-        };
-        setAlerts(prev => [newAlert, ...prev.slice(0, 4)]);
+      const connectedDevices = devices.filter(d => d.connected).length;
+      const connectedApps = apps.filter(a => a.linked).length;
+
+      // Only generate dynamic alerts if we have active data sources
+      if (connectedDevices > 0 || connectedApps > 0) {
+        const randomChance = Math.random();
+        if (randomChance > 0.95) {
+          addAlert({
+            title: 'Optimisation Détectée',
+            desc: 'L\'IA a identifié une opportunité d\'économie sur vos abonnements.',
+            type: 'green',
+            icon: '💰',
+            time: 'À l\'instant',
+            actions: ['Voir détails']
+          });
+        }
       }
-      
-      // Subtle score fluctuations to show "live" data
-      setScores(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          h: (parseFloat(prev.h) + (Math.random() * 0.1 - 0.05)).toFixed(1),
-          f: (parseFloat(prev.f) + (Math.random() * 0.1 - 0.05)).toFixed(1),
-          t: (parseFloat(prev.t) + (Math.random() * 0.02 - 0.01)).toFixed(1)
-        };
-      });
-    }, 30000); // Every 30 seconds
+    }, 60000); // Every minute
 
     return () => clearInterval(intelligenceInterval);
-  }, [user, isLocked]);
+  }, [user, isLocked, devices, apps]);
 
   const calculateRealScores = (userData: User) => {
+    // Use data intelligence for more reliable stats if we have data
+    const analyzedScores = dataIntelligence.analyzeData(liveData);
+    
     const healthBase = userData.sleep >= 7 ? 8.5 : 6.0;
     const activityBonus = userData.activity === 'athlete' ? 1.5 : userData.activity === 'high' ? 1.0 : 0.5;
     const financeBase = userData.finance === 'comfortable' ? 9.0 : userData.finance === 'ok' ? 7.0 : 5.0;
@@ -195,12 +247,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const adminBase = 8.0;
 
     const mockScores: ScoreData = {
-      h: (healthBase + activityBonus + (Math.random() * 0.5)).toFixed(1),
-      f: (financeBase + (Math.random() * 0.8)).toFixed(1),
-      s: (socialBase + (Math.random() * 0.5)).toFixed(1),
-      c: (cognitiveBase + (Math.random() * 0.5)).toFixed(1),
-      k: (careerBase + (Math.random() * 0.5)).toFixed(1),
-      a: (adminBase + (Math.random() * 0.5)).toFixed(1),
+      h: ((parseFloat(analyzedScores.h) + healthBase + activityBonus) / 2).toFixed(1),
+      f: ((parseFloat(analyzedScores.f) + financeBase) / 2).toFixed(1),
+      s: socialBase.toFixed(1),
+      c: cognitiveBase.toFixed(1),
+      k: careerBase.toFixed(1),
+      a: adminBase.toFixed(1),
       t: '0.0'
     };
 
@@ -270,44 +322,166 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPermissions(prev => prev.map(p => p.id === id ? { ...p, granted: !p.granted } : p));
   };
 
+  const syncBluetoothDevices = async () => {
+    const nav = navigator as any;
+    if (!nav.bluetooth || !nav.bluetooth.getDevices) return;
+
+    try {
+      const authorizedDevices = await nav.bluetooth.getDevices();
+      for (const device of authorizedDevices) {
+        if (!devices.find(d => d.id === device.id)) {
+          const newDevice: Device = {
+            id: device.id,
+            name: device.name || 'Appareil Autorisé',
+            type: 'Bluetooth Device',
+            signal: 'Connecté',
+            icon: '📱',
+            connected: true,
+            difficulty: 'easy',
+            stability: 'high'
+          };
+          setDevices(prev => [...prev, newDevice]);
+          analyzeConnection(newDevice);
+        }
+      }
+    } catch (error) {
+      console.error('Bluetooth Sync Error:', error);
+    }
+  };
+
+  const addDevice = (device: Device) => {
+    analyzeConnection(device);
+    setDevices(prev => {
+      if (prev.find(d => d.id === device.id)) return prev;
+      return [...prev, { ...device, connected: true }];
+    });
+    
+    addAlert({
+      title: 'Nouvel Appareil',
+      desc: `${device.name} a été ajouté et synchronisé.`,
+      type: 'green',
+      icon: '✨',
+      time: 'À l\'instant',
+      actions: []
+    });
+  };
+
   const connectDevice = async (id: string) => {
+    const device = devices.find(d => d.id === id);
+    if (device) analyzeConnection(device);
+
     setDevices(prev => prev.map(d => d.id === id ? { ...d, connecting: true } : d));
     
-    // Try real Bluetooth if available
-    if ('bluetooth' in navigator) {
-      try {
-        // This will prompt the user for a real device
-        // Note: In an iframe this might fail, so we have a fallback
-        const device = await (navigator as any).bluetooth.requestDevice({
-          acceptAllDevices: true
-        });
-        console.log("Connected to real device:", device.name);
-      } catch (e) {
-        console.warn("Real Bluetooth request failed or cancelled. Using simulation.", e);
-      }
-    }
-
     setTimeout(() => {
       setDevices(prev => prev.map(d => d.id === id ? { ...d, connected: true, connecting: false } : d));
-      const device = devices.find(d => d.id === id);
-      if (device?.type.includes('Santé') && user) {
+      if (user) {
         calculateRealScores({ ...user });
       }
-    }, 2000);
-  };
-
-  const linkApp = (id: string) => {
-    setApps(prev => prev.map(a => a.id === id ? { ...a, linking: true } : a));
-    setTimeout(() => {
-      setApps(prev => prev.map(a => a.id === id ? { ...a, linked: true, linking: false } : a));
+      
+      addAlert({
+        title: 'Appareil Connecté',
+        desc: `${device?.name} est maintenant synchronisé en temps réel.`,
+        type: 'green',
+        icon: '✅',
+        time: 'À l\'instant',
+        actions: []
+      });
     }, 1500);
   };
+
+  const linkApp = async (id: string) => {
+    const app = apps.find(a => a.id === id);
+    if (app) analyzeConnection(app);
+
+    try {
+      let authUrl = '';
+      if (id === 'google-fit' || id === 'calendar' || id === 'gmail') {
+        const res = await fetch('/api/auth/google/url');
+        const data = await res.json();
+        authUrl = data.url;
+      } else if (id === 'spotify') {
+        const res = await fetch('/api/auth/spotify/url');
+        const data = await res.json();
+        authUrl = data.url;
+      }
+
+      if (authUrl) {
+        const width = 600;
+        const height = 700;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+        
+        window.open(
+          authUrl,
+          'oauth_popup',
+          `width=${width},height=${height},left=${left},top=${top}`
+        );
+        return;
+      }
+
+      // Fallback for other apps
+      setApps(prev => prev.map(a => a.id === id ? { ...a, linking: true } : a));
+      
+      setTimeout(() => {
+        setApps(prev => prev.map(a => a.id === id ? { ...a, linked: true, linking: false } : a));
+        
+        addAlert({
+          title: 'Application Liée',
+          desc: `${app?.name} partage désormais ses données avec 6S.`,
+          type: 'green',
+          icon: '🔗',
+          time: 'À l\'instant',
+          actions: []
+        });
+      }, 1200);
+    } catch (error) {
+      console.error('OAuth error:', error);
+    }
+  };
+
+  // Listen for OAuth success
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const origin = event.origin;
+      if (!origin.endsWith('.run.app') && !origin.includes('localhost')) return;
+
+      if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
+        const provider = event.data.provider;
+        if (provider === 'google') {
+          setApps(prev => prev.map(app => 
+            (app.id === 'google-fit' || app.id === 'calendar' || app.id === 'gmail') 
+              ? { ...app, linked: true } 
+              : app
+          ));
+        } else if (provider === 'spotify') {
+          setApps(prev => prev.map(app => 
+            app.id === 'spotify' ? { ...app, linked: true } : app
+          ));
+        }
+        addAlert({
+          title: 'Connexion Réussie',
+          desc: `Votre compte ${provider.charAt(0).toUpperCase() + provider.slice(1)} est maintenant lié.`,
+          type: 'green',
+          icon: '✅',
+          time: 'À l\'instant',
+          actions: []
+        });
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   return (
     <AppContext.Provider value={{ 
       user, setUser, scores, alerts, predictions, ghostTasks, devices, apps, permissions, 
-      togglePermission, connectDevice, linkApp, addContact, requestGhostTask, 
-      removeAlert, dismissPrediction, isLoading, isGenerating 
+      liveData, togglePermission, connectDevice, addDevice, linkApp, addContact, requestGhostTask, 
+      removeAlert, 
+      addAlert, 
+      dismissPrediction, 
+      syncBluetoothDevices,
+      isLoading, 
+      isGenerating 
     }}>
       {children}
     </AppContext.Provider>

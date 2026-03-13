@@ -12,19 +12,24 @@ import { SocialRadar } from './components/SocialRadar';
 import { Settings } from './components/Settings';
 import { Connections } from './components/Connections';
 import { GhostAdmin } from './components/GhostAdmin';
+import { Statistics } from './components/Statistics';
 import { BottomNav } from './components/BottomNav';
 import { TopBar } from './components/TopBar';
 import { AnimatePresence, motion } from 'motion/react';
 
 import { SystemStatus } from './components/SystemStatus';
 import { WifiOff } from 'lucide-react';
+import { useBackgroundTasks } from './hooks/useBackgroundTasks';
 
 const AppContent: React.FC = () => {
   const { isLocked, hasPin } = useSecurity();
   const { user, isLoading } = useApp();
   const [showSplash, setShowSplash] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [activePage, setActivePage] = useState<'home' | 'shield' | 'predictions' | 'social' | 'settings' | 'connections' | 'ghost'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'shield' | 'predictions' | 'social' | 'settings' | 'connections' | 'ghost' | 'statistics'>('home');
+
+  // Initialize Background Tasks
+  useBackgroundTasks();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -60,7 +65,8 @@ const AppContent: React.FC = () => {
       case 'social': return <SocialRadar />;
       case 'settings': return <Settings onNavigate={setActivePage} />;
       case 'connections': return <Connections />;
-      case 'ghost': return <GhostAdmin />;
+      case 'ghost': return <GhostAdmin onBack={() => setActivePage('home')} />;
+      case 'statistics': return <Statistics onBack={() => setActivePage('home')} />;
       default: return <Dashboard onNavigate={setActivePage} />;
     }
   };

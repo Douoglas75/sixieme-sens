@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, Plus, Crown, PiggyBank, X, Sparkles } from 'lucide-react';
+import { Check, Plus, Crown, PiggyBank, X, Sparkles, ArrowLeft } from 'lucide-react';
 
-export const GhostAdmin: React.FC = () => {
+interface GhostAdminProps {
+  onBack?: () => void;
+}
+
+export const GhostAdmin: React.FC<GhostAdminProps> = ({ onBack }) => {
   const { ghostTasks, requestGhostTask } = useApp();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [taskName, setTaskName] = useState('');
@@ -19,7 +23,14 @@ export const GhostAdmin: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">🤖 Ghost-Admin</h2>
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button onClick={onBack} className="p-2 bg-white/5 rounded-xl">
+              <ArrowLeft size={16} />
+            </button>
+          )}
+          <h2 className="text-lg font-bold">🤖 Ghost-Admin</h2>
+        </div>
         <button 
           onClick={() => setShowRequestModal(true)}
           className="w-10 h-10 rounded-full bg-[#7c3aed]/10 flex items-center justify-center text-[#7c3aed]"
