@@ -19,7 +19,9 @@ interface SessionRequest extends Request {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DATA_FILE = path.join(__dirname, "data.json");
+const DATA_FILE = process.env.VERCEL 
+  ? "/tmp/data.json" 
+  : path.join(__dirname, "data.json");
 
 // OAuth Config
 const GOOGLE_CONFIG = {
@@ -56,8 +58,21 @@ const plaidClient = new PlaidApi(new Configuration({
 
 const ai_server = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
+async function ensureDataFile() {
+  try {
+    await fs.access(DATA_FILE);
+  } catch {
+    try {
+      await fs.writeFile(DATA_FILE, JSON.stringify({ users: {}, tokens: {} }));
+    } catch (e) {
+      console.error("Failed initializing database", e);
+    }
+  }
+}
+
 async function saveTokens(userId: string, provider: 'google' | 'spotify', tokens: any) {
   try {
+    await ensureDataFile();
     const fileContent = await fs.readFile(DATA_FILE, "utf-8");
     const db = JSON.parse(fileContent);
     if (!db.tokens) db.tokens = {};
@@ -71,6 +86,7 @@ async function saveTokens(userId: string, provider: 'google' | 'spotify', tokens
 
 async function getTokens(userId: string, provider: 'google' | 'spotify') {
   try {
+    await ensureDataFile();
     const fileContent = await fs.readFile(DATA_FILE, "utf-8");
     const db = JSON.parse(fileContent);
     return db.tokens?.[userId]?.[provider] || null;
@@ -80,27 +96,22 @@ async function getTokens(userId: string, provider: 'google' | 'spotify') {
   }
 }
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+const app = express();
+const PORT = 3000;
 
-  app.use(express.json());
-  app.use(cookieParser());
-  app.use(session({
-    secret: "6s-intuition-secret",
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true, sameSite: 'none', httpOnly: true }
-  }));
+app.use(express.json());
+app.use(cookieParser());
+app.use(session({
+  secret: "6s-intuition-secret",
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true, sameSite: 'none', httpOnly: true }
+}));
 
-  // Ensure data file exists
-  try {
-    await fs.access(DATA_FILE);
-  } catch {
-    await fs.writeFile(DATA_FILE, JSON.stringify({ users: {}, tokens: {} }));
-  }
+// Initialize database file
+ensureDataFile();
 
-  // API routes
+// API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", version: "2.0.0", timestamp: new Date().toISOString() });
   });
@@ -436,23 +447,26 @@ async function startServer() {
     }
   });
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    app.use(express.static(path.join(__dirname, "dist")));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
-    });
+  // Vite middleware for development (Skip inside running Serverless instances on Vercel)
+  if (!process.env.VERCEL) {
+    (async () => {
+      if (process.env.NODE_ENV !== "production") {
+        const vite = await createViteServer({
+          server: { middlewareMode: true },
+          appType: "spa",
+        });
+        app.use(vite.middlewares);
+      } else {
+        app.use(express.static(path.join(__dirname, "dist")));
+        app.get("*", (req, res) => {
+          res.sendFile(path.join(__dirname, "dist", "index.html"));
+        });
+      }
+
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
+    })();
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
-
-startServer();
+export default app;
