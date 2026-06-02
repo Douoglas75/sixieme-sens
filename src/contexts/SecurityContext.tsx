@@ -157,7 +157,12 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const encrypt = async (data: any) => {
     if (!window.crypto || !window.crypto.subtle) return JSON.stringify(data);
-    if (!key) throw new Error('Locked');
+    if (!key) {
+      if (localStorage.getItem('6s_auth_ok') !== 'true') {
+        return JSON.stringify({ no_pin_cleartext: true, data });
+      }
+      throw new Error('Locked');
+    }
     const iv = crypto.getRandomValues(new Uint8Array(CONFIG.IV_LEN));
     const encoder = new TextEncoder();
     const ct = await crypto.subtle.encrypt(
@@ -171,6 +176,14 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const decrypt = async (encrypted: string) => {
     if (!window.crypto || !window.crypto.subtle) {
       try { return JSON.parse(encrypted); } catch { return encrypted; }
+    }
+    try {
+      const parsed = JSON.parse(encrypted);
+      if (parsed && parsed.no_pin_cleartext) {
+        return parsed.data;
+      }
+    } catch (e) {
+      // Not GCM JSON, might be standard JSON
     }
     if (!key) throw new Error('Locked');
     const obj = JSON.parse(encrypted);

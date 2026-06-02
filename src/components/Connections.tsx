@@ -96,8 +96,11 @@ export const Connections: React.FC = () => {
       setIsScanning(true);
       setScanResults([]);
       try {
-        if ((window as any).AndroidBridge?.startScan) {
-          (window as any).AndroidBridge.startScan();
+        const bridge = (window as any).AndroidBridge;
+        if (bridge?.startBluetoothScan) {
+          bridge.startBluetoothScan();
+        } else if (bridge?.startScan) {
+          bridge.startScan();
         } else {
           setIsScanning(false);
           addAlert({
@@ -378,7 +381,7 @@ export const Connections: React.FC = () => {
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-[11px] text-white font-bold mb-1">Recherche Ghost-Protocol...</p>
+                <p className="text-[11px] text-white font-bold mb-1">Recherche d'ajustements biométriques...</p>
                 <p className="text-[9px] text-[#a0a0cc]">Assurez-vous que vos appareils sont à proximité</p>
               </div>
             </motion.div>

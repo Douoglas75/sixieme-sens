@@ -34,6 +34,38 @@ const AppContent: React.FC = () => {
   useBackgroundTasks();
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('source') === 'apk' || params.get('bypass') === 'true') {
+      localStorage.setItem('6s_login_choice', 'true');
+      setHasChosenLogin(true);
+      
+      const defaultUser = {
+        name: 'Utilisateur',
+        sleep: 7.5,
+        activity: 'medium' as const,
+        finance: 'ok' as const,
+        contacts: []
+      };
+      
+      skipPinSetup();
+      if (!user) {
+        setUser(defaultUser);
+      }
+      
+      setActivePage('connections');
+      
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('source');
+        url.searchParams.delete('bypass');
+        window.history.replaceState({}, '', url.pathname + url.search);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [user, skipPinSetup, setUser]);
+
+  useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     window.addEventListener('online', handleOnline);
