@@ -45,4 +45,14 @@ public class WebAppInterface {
     public boolean checkLocationPermission() {
         return mainActivity.hasLocationPermission();
     }
+
+    @JavascriptInterface
+    public boolean checkBluetoothPermissions() {
+        return mainActivity.hasBluetoothPermissions();
+    }
+
+    @JavascriptInterface
+    public void requestBluetoothPermissions() {
+        mainActivity.requestBluetoothPermissions();
+    }
 }

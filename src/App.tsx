@@ -21,6 +21,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { SystemStatus } from './components/SystemStatus';
 import { WifiOff } from 'lucide-react';
 import { useBackgroundTasks } from './hooks/useBackgroundTasks';
+import { useBluetoothPermissions } from './hooks/useBluetoothPermissions';
 
 const AppContent: React.FC = () => {
   const { isLocked, hasPin, setupPin, skipPinSetup, onboardingDone } = useSecurity();
@@ -32,6 +33,9 @@ const AppContent: React.FC = () => {
 
   // Initialize Background Tasks
   useBackgroundTasks();
+
+  // Automatically verify and request Bluetooth/Location permissions on APK startup
+  useBluetoothPermissions();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
