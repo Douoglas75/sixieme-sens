@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient());
         
         // Load the app URL from environment or fallback
-        String appUrl = "https://ais-dev-wsvx2utd3gexbthigqzjjr-243271428685.europe-west2.run.app"; 
+        String appUrl = "https://sixieme-sens-doogie75s-projects.vercel.app"; 
         webView.loadUrl(appUrl);
 
         checkPermissions();

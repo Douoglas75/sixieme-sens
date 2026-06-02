@@ -23,8 +23,8 @@ import { WifiOff } from 'lucide-react';
 import { useBackgroundTasks } from './hooks/useBackgroundTasks';
 
 const AppContent: React.FC = () => {
-  const { isLocked, hasPin } = useSecurity();
-  const { user, isLoading } = useApp();
+  const { isLocked, hasPin, setupPin } = useSecurity();
+  const { user, isLoading, setUser } = useApp();
   const [showSplash, setShowSplash] = useState(true);
   const [hasChosenLogin, setHasChosenLogin] = useState(() => localStorage.getItem('6s_login_choice') === 'true');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -50,12 +50,31 @@ const AppContent: React.FC = () => {
   if (showSplash) return <SplashScreen />;
   if (isLoading) return <SplashScreen />;
 
+  const handleChoice = async (choice: 'local' | 'google' | 'demo') => {
+    setHasChosenLogin(true);
+    localStorage.setItem('6s_login_choice', 'true');
+    
+    if (choice === 'demo') {
+      // 1. Setup a pre-configured demo user
+      setUser({
+        name: 'Sarah',
+        sleep: 8,
+        activity: 'high',
+        finance: 'ok',
+        contacts: [
+          { name: 'Maman', relation: 'Famille', lastContact: 2 },
+          { name: 'Thomas', relation: 'Ami', lastContact: 5 },
+          { name: 'Émilie', relation: 'Collègue', lastContact: 1 }
+        ]
+      });
+      // 2. Automatically set up local pin to bypass onboarding
+      await setupPin('1234');
+    }
+  };
+
   // Only show LoginChoice if we don't have a user, haven't made a choice yet, and don't have a PIN
   if (!hasChosenLogin && !user && !hasPin) {
-    return <LoginChoice onChoice={() => {
-      setHasChosenLogin(true);
-      localStorage.setItem('6s_login_choice', 'true');
-    }} />;
+    return <LoginChoice onChoice={handleChoice} />;
   }
 
   if (!hasPin) return <Onboarding />;

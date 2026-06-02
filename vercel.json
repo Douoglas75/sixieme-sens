@@ -1,27 +1,37 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "package.json",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "server.ts"
+      "source": "/api/health",
+      "destination": "/api/index.ts"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "dist/assets/$1"
+      "source": "/api/auth/google/(.*)",
+      "destination": "/api/index.ts"
     },
     {
-      "src": "/vite.svg",
-      "dest": "dist/vite.svg"
+      "source": "/api/auth/spotify/(.*)",
+      "destination": "/api/index.ts"
     },
     {
-      "src": "/(.*)",
-      "dest": "dist/$1"
+      "source": "/api/auth/plaid/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/api/data/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/api/user/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/api/apps/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/((?!api|assets|favicon.ico|manifest.webmanifest|icon-192.png|sw.js).*|[^.]+)",
+      "destination": "/index.html"
     }
   ]
 }

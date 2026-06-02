@@ -4,7 +4,7 @@ import { Shield, Globe, Lock, ChevronRight } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 
 interface LoginChoiceProps {
-  onChoice: (choice: 'local' | 'google') => void;
+  onChoice: (choice: 'local' | 'google' | 'demo') => void;
 }
 
 export const LoginChoice: React.FC<LoginChoiceProps> = ({ onChoice }) => {
@@ -39,8 +39,22 @@ export const LoginChoice: React.FC<LoginChoiceProps> = ({ onChoice }) => {
 
       <div className="w-full max-w-sm space-y-4">
         <button 
+          onClick={() => onChoice('demo')}
+          className="w-full p-6 bg-gradient-to-r from-[#201c4e] to-[#251b3e] border border-cyan-500/30 rounded-2xl flex items-center gap-4 hover:border-cyan-400 transition-all group"
+        >
+          <div className="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center text-cyan-400 font-bold text-lg">
+            ✨
+          </div>
+          <div className="flex-1 text-left">
+            <div className="font-bold text-white group-hover:text-cyan-400 transition-colors">Démo d'Accès Direct</div>
+            <div className="text-[10px] text-[#a0a0cc]">Accéder directement à l'application sans configuration ni compte.</div>
+          </div>
+          <ChevronRight size={16} className="text-[#6a6a99]" />
+        </button>
+
+        <button 
           onClick={() => onChoice('local')}
-          className="w-full p-6 bg-[#1a1a3e] border border-[#7c3aed]/30 rounded-2xl flex items-center gap-4 hover:bg-[#1a1a3e]/80 transition-all group"
+          className="w-full p-5 bg-[#1a1a3e]/60 border border-[#7c3aed]/30 rounded-2xl flex items-center gap-4 hover:bg-[#1a1a3e]/80 transition-all group"
         >
           <div className="w-12 h-12 bg-[#7c3aed]/20 rounded-xl flex items-center justify-center text-[#7c3aed]">
             <Lock size={24} />
@@ -54,7 +68,7 @@ export const LoginChoice: React.FC<LoginChoiceProps> = ({ onChoice }) => {
 
         <button 
           onClick={handleGoogleLogin}
-          className="w-full p-6 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4 hover:bg-white/10 transition-all group"
+          className="w-full p-5 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4 hover:bg-white/10 transition-all group"
         >
           <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
             <Globe size={24} className="text-blue-400" />
