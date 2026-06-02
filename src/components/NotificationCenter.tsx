@@ -9,7 +9,7 @@ interface NotificationCenterProps {
 }
 
 export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
-  const { alerts, removeAlert } = useApp();
+  const { alerts, removeAlert, clearAllAlerts } = useApp();
 
   return (
     <AnimatePresence>
@@ -42,15 +42,15 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
               <div className="flex items-center gap-2">
                 {alerts.length > 0 && (
                   <button 
-                    onClick={() => alerts.forEach(a => removeAlert(a.title))}
-                    className="text-[10px] font-bold text-[#7c3aed] uppercase tracking-wider hover:text-[#9d66ff] transition-colors"
+                    onClick={clearAllAlerts}
+                    className="text-[10px] font-bold text-[#7c3aed] uppercase tracking-wider hover:text-[#9d66ff] transition-colors p-2"
                   >
                     Tout effacer
                   </button>
                 )}
                 <button 
                   onClick={onClose}
-                  className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                  className="p-3 -mr-2 hover:bg-white/5 rounded-full transition-colors"
                 >
                   <X size={20} className="text-[#a0a0cc]" />
                 </button>
@@ -88,8 +88,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                     <div className="flex-1">
                       <div className="flex justify-between items-start mb-1">
                         <h3 className="text-sm font-bold">{alert.title}</h3>
-                        <button onClick={() => removeAlert(alert.title)} className="text-[#6a6a99] hover:text-white">
-                          <X size={14} />
+                        <button 
+                          onClick={() => removeAlert(alert.title)} 
+                          className="p-2 -mr-2 text-[#6a6a99] hover:text-white transition-colors"
+                        >
+                          <X size={16} />
                         </button>
                       </div>
                       <p className="text-[11px] text-[#a0a0cc] leading-relaxed mb-2">{alert.desc}</p>

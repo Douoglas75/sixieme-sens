@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { motion } from 'motion/react';
-import { Calendar, Info, TrendingUp } from 'lucide-react';
+import { Calendar, Info, TrendingUp, Zap, HeartPulse, Wallet, Phone } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
+import { hapticFeedback } from '../utils/haptics';
 
 export const Predictions: React.FC = () => {
-  const { predictions, dismissPrediction } = useApp();
+  const { predictions, dismissPrediction, addAlert } = useApp();
   const [filter, setFilter] = useState('all');
 
   const filteredPredictions = filter === 'all' 
@@ -107,7 +108,15 @@ export const Predictions: React.FC = () => {
               </div>
               <button 
                 onClick={() => {
-                  alert(`Recommandation appliquée : ${p.rec}`);
+                  hapticFeedback('medium');
+                  addAlert({
+                    title: 'Recommandation Appliquée',
+                    desc: p.rec,
+                    type: 'green',
+                    icon: 'Zap',
+                    time: 'À l\'instant',
+                    actions: []
+                  });
                   dismissPrediction(p.id);
                 }}
                 className="w-full py-2 bg-[#06b6d4]/20 text-[#06b6d4] rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-[#06b6d4]/30 transition-all active:scale-95"

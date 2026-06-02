@@ -7,13 +7,59 @@ export const Connections: React.FC = () => {
   const { devices, apps, permissions, connectDevice, addDevice, linkApp, togglePermission, liveData, addAlert, syncBluetoothDevices } = useApp();
   const [isScanning, setIsScanning] = useState(false);
   const [scanResults, setScanResults] = useState<any[]>([]);
+  const isAndroid = (window as any).AndroidBridge !== undefined;
 
   // Auto-sync on mount
   React.useEffect(() => {
     syncBluetoothDevices();
-  }, []);
+
+    // Listen for Android Bridge events
+    if (isAndroid) {
+      const handleDeviceFound = (e: any) => {
+        const device = e.detail;
+        setScanResults(prev => {
+          if (prev.find(d => d.id === device.id)) return prev;
+          return [...prev, {
+            id: device.id,
+            name: device.name,
+            type: 'Bluetooth Device',
+            signal: `${device.rssi} dBm`,
+            icon: '📱',
+            difficulty: 'easy',
+            stability: 'high'
+          }];
+        });
+      };
+
+      const handleScanFinished = () => setIsScanning(false);
+
+      const handleConnectionChange = (e: any) => {
+        const { address, status } = e.detail;
+        if (status === 'connected') {
+          // Device connected, update state if needed
+        }
+      };
+
+      window.addEventListener('onDeviceFound' as any, handleDeviceFound);
+      window.addEventListener('onScanFinished' as any, handleScanFinished);
+      window.addEventListener('onConnectionStateChange' as any, handleConnectionChange);
+
+      return () => {
+        window.removeEventListener('onDeviceFound' as any, handleDeviceFound);
+        window.removeEventListener('onScanFinished' as any, handleScanFinished);
+        window.removeEventListener('onConnectionStateChange' as any, handleConnectionChange);
+      };
+    }
+  }, [isAndroid]);
 
   const startScan = async () => {
+    if (isAndroid) {
+      setIsScanning(true);
+      setScanResults([]);
+      (window as any).AndroidBridge.startBluetoothScan();
+      return;
+    }
+
     const nav = navigator as any;
     if (!nav.bluetooth) {
       addAlert({
@@ -31,16 +77,10 @@ export const Connections: React.FC = () => {
     setScanResults([]);
     
     try {
-      // Real Web Bluetooth Request with strict filters to avoid unknown devices
+      // Broaden Bluetooth filters to detect more devices
       const device = await nav.bluetooth.requestDevice({
-        filters: [
-          { services: ['heart_rate'] },
-          { services: ['battery_service'] },
-          { services: ['device_information'] },
-          { services: ['fitness_machine'] },
-          { services: ['cycling_power'] }
-        ],
-        optionalServices: ['battery_service', 'heart_rate', 'device_information']
+        acceptAllDevices: true,
+        optionalServices: ['battery_service', 'heart_rate', 'device_information', 'fitness_machine', 'cycling_power', 'cycling_speed_and_cadence']
       });
 
       if (device) {
@@ -83,11 +123,15 @@ export const Connections: React.FC = () => {
   };
 
   const handleAppairage = (res: any) => {
+    if (isAndroid) {
+      (window as any).AndroidBridge.connectToDevice(res.id);
+    }
+    
     addDevice({
       id: res.id,
       name: res.name,
       type: res.type,
-      signal: 'Fort',
+      signal: res.signal || 'Fort',
       icon: res.icon || '📱'
     });
     setScanResults(prev => prev.filter(r => r.id !== res.id));
@@ -149,6 +193,59 @@ export const Connections: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* Solution de Synchronisation Hybrid (APK / WebView) */}
+      <section className="p-5 rounded-3xl bg-gradient-to-br from-[#1e1b4b] to-[#0a051d] border border-blue-500/30 space-y-3">
+        <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
+          📲 Guide de Connexion Mobile (APK)
+        </h3>
+        <p className="text-[10.5px] text-[#a0a0cc] leading-relaxed">
+          Google bloque l'authentification directe (erreur <code className="text-[#ec4899] font-mono bg-black/40 px-1 rounded text-[9.5px]">disallowed_useragent</code>) au sein des applications Android APK non vérifiées.
+        </p>
+        <div className="space-y-2 bg-[#0a0a1a]/70 p-3 rounded-2xl border border-white/5 text-[9.5px] text-[#a0a0cc]">
+          <p className="font-bold text-white">Pour lier vos comptes Google Fit & Google Agenda :</p>
+          <div className="flex gap-2 items-start">
+            <span className="text-[#a0a0cc] font-black">1.</span>
+            <p>Ouvrez l'application depuis le navigateur Chrome de votre mobile :</p>
+          </div>
+          <div className="bg-black/80 p-2.5 rounded-xl border border-blue-500/20 font-mono text-[9px] select-all flex items-center justify-between text-blue-300">
+            <span className="truncate mr-2">{window.location.origin}</span>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.origin);
+                addAlert({
+                  title: 'Lien copié !',
+                  desc: 'Collez ce lien dans Chrome pour finaliser la synchronisation.',
+                  type: 'green',
+                  icon: '📋',
+                  time: 'À l\'instant',
+                  actions: []
+                });
+              }}
+              className="px-2 py-1 bg-[#7c3aed]/20 hover:bg-[#7c3aed]/40 active:scale-95 text-white text-[8px] uppercase font-bold rounded animate-pulse"
+            >
+              Copier
+            </button>
+          </div>
+          <div className="flex gap-2 items-start mt-2">
+            <span className="text-[#a0a0cc] font-black">2.</span>
+            <p>Cliquez sur "Lier" pour Google directement dans Chrome.</p>
+          </div>
+          <div className="flex gap-2 items-start">
+            <span className="text-[#a0a0cc] font-black">3.</span>
+            <p>Rouvrez votre APK : vos données réelles se synchroniseront instantanément et automatiquement grâce à notre cloud sécurisé !</p>
+          </div>
+        </div>
+
+        <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl space-y-1.5 text-[9.5px]">
+          <h4 className="font-bold text-amber-400 flex items-center gap-1.5">
+            ⚠️ Bluetooth & Localisation (APK Android)
+          </h4>
+          <p className="text-[#a0a0cc] leading-relaxed">
+            Pour que le Bluetooth trouve vos appareils sur votre téléphone Android, vous <strong>devez</strong> accorder la <strong>permission de localisation (GPS)</strong> de l'application dans les paramètres Android de votre smartphone. Google l'impose pour détecter les ondes BLE.
+          </p>
+        </div>
+      </section>
 
       <section className="space-y-3">
         <div className="flex items-center justify-between px-1">
@@ -226,7 +323,12 @@ export const Connections: React.FC = () => {
             >
               <div className="flex justify-between items-center mb-1">
                 <h4 className="text-[10px] font-black text-[#7c3aed] uppercase">Appareils trouvés</h4>
-                <button onClick={() => setScanResults([])}><X size={12} className="text-[#6a6a99]" /></button>
+                <button 
+                  onClick={() => setScanResults([])}
+                  className="p-2 -mr-2 hover:bg-white/5 rounded-full transition-colors"
+                >
+                  <X size={16} className="text-[#6a6a99]" />
+                </button>
               </div>
               {scanResults.map(res => (
                 <div key={res.id} className="flex items-center justify-between p-2 bg-[#0a0a1a] rounded-xl border border-white/5">
@@ -370,8 +472,8 @@ export const Connections: React.FC = () => {
                 <h4 className="text-sm font-bold">{perm.name}</h4>
                 <p className="text-[10px] text-[#a0a0cc]">{perm.desc}</p>
               </div>
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${perm.granted ? 'text-emerald-500' : 'text-[#6a6a99]'}`}>
-                {perm.granted ? <Check size={18} /> : <ChevronRight size={18} />}
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${perm.granted ? 'text-emerald-500 bg-emerald-500/10' : 'text-[#6a6a99] bg-white/5'}`}>
+                {perm.granted ? <Check size={20} /> : <ChevronRight size={20} />}
               </div>
             </div>
           ))}
@@ -379,21 +481,23 @@ export const Connections: React.FC = () => {
       </section>
       <section className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-4">
         <h3 className="text-[10px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
-          ⚙️ Configuration Technique (OAuth)
+          ⚙️ Configuration Technique (OAuth & API)
         </h3>
         <p className="text-[10px] text-[#a0a0cc] leading-relaxed">
-          Pour activer les connexions réelles, vous devez configurer vos identifiants dans les paramètres de l'application :
+          Pour activer les connexions réelles, configurez vos identifiants dans les paramètres (Secrets) :
         </p>
         <div className="space-y-3">
           <div className="p-3 rounded-xl bg-white/5 border border-white/10">
             <h4 className="text-[9px] font-bold text-white mb-1">Google (Fit, Calendar, Gmail)</h4>
             <p className="text-[8px] text-[#a0a0cc] mb-2">URL de redirection : <code className="bg-black/50 px-1 rounded text-emerald-500">{window.location.origin}/api/auth/google/callback</code></p>
-            <p className="text-[8px] text-[#a0a0cc]">Scopes requis : calendar.readonly, gmail.readonly, fitness.activity.read</p>
           </div>
           <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-            <h4 className="text-[9px] font-bold text-white mb-1">Spotify</h4>
-            <p className="text-[8px] text-[#a0a0cc] mb-2">URL de redirection : <code className="bg-black/50 px-1 rounded text-emerald-500">{window.location.origin}/api/auth/spotify/callback</code></p>
-            <p className="text-[8px] text-[#a0a0cc]">Scopes requis : user-read-recently-played, user-top-read</p>
+            <h4 className="text-[9px] font-bold text-white mb-1">OpenWeatherMap</h4>
+            <p className="text-[8px] text-[#a0a0cc]">Clé requise : <code className="bg-black/50 px-1 rounded text-emerald-500">OPENWEATHER_API_KEY</code></p>
+          </div>
+          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+            <h4 className="text-[9px] font-bold text-white mb-1">Plaid (Banque)</h4>
+            <p className="text-[8px] text-[#a0a0cc]">Secrets requis : <code className="bg-black/50 px-1 rounded text-emerald-500">PLAID_CLIENT_ID</code>, <code className="bg-black/50 px-1 rounded text-emerald-500">PLAID_SECRET</code></p>
           </div>
         </div>
       </section>

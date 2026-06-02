@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { useSecurity } from '../contexts/SecurityContext';
-import { User as UserIcon, Watch, Bell, Clock, Brain, Lock, ShieldCheck, Download, Trash2, Crown, ChevronRight, Cloud, X, Check } from 'lucide-react';
+import { User as UserIcon, Watch, Bell, Clock, Brain, Lock, ShieldCheck, Download, Trash2, Crown, ChevronRight, Cloud, X, Check, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { hapticFeedback } from '../utils/haptics';
 
 interface SettingsProps {
   onNavigate: (page: any) => void;
@@ -10,14 +11,22 @@ interface SettingsProps {
 
 export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
   const { lock } = useSecurity();
-  const { user, setUser, scores } = useApp();
+  const { user, setUser, scores, addAlert } = useApp();
   const [cloudSync, setCloudSync] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [editUser, setEditUser] = useState(user || { name: '', sleep: 7, activity: 'medium', finance: 'ok', contacts: [] });
 
   const handleSaveProfile = () => {
+    hapticFeedback('medium');
     setUser(editUser as any);
     setShowProfileModal(false);
+  };
+
+  const handleReset = () => {
+    hapticFeedback('heavy');
+    localStorage.clear();
+    window.location.reload();
   };
 
   return (
@@ -118,10 +127,8 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
             </div>
             <div 
               onClick={() => {
-                if (window.confirm('Voulez-vous vraiment réinitialiser toutes vos données ? Cette action est irréversible.')) {
-                  localStorage.clear();
-                  window.location.reload();
-                }
+                hapticFeedback('light');
+                setShowResetConfirm(true);
               }}
               className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl cursor-pointer active:scale-[0.98] transition-all text-red-400"
             >
@@ -144,6 +151,45 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
       </div>
 
       <AnimatePresence>
+        {showResetConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowResetConfirm(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-[#1a1a3e] border border-red-500/30 rounded-[2rem] p-8 shadow-2xl text-center"
+            >
+              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                <AlertTriangle size={32} />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Réinitialisation</h3>
+              <p className="text-sm text-[#a0a0cc] mb-8">Voulez-vous vraiment effacer toutes vos données ? Cette action est irréversible.</p>
+              
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={handleReset}
+                  className="w-full py-4 bg-red-500 rounded-2xl font-bold text-sm"
+                >
+                  Tout effacer
+                </button>
+                <button 
+                  onClick={() => setShowResetConfirm(false)}
+                  className="w-full py-4 bg-white/5 rounded-2xl font-bold text-sm text-[#a0a0cc]"
+                >
+                  Annuler
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
         {showProfileModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
             <motion.div 

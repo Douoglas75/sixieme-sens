@@ -15,6 +15,7 @@ import { GhostAdmin } from './components/GhostAdmin';
 import { Statistics } from './components/Statistics';
 import { BottomNav } from './components/BottomNav';
 import { TopBar } from './components/TopBar';
+import { LoginChoice } from './components/LoginChoice';
 import { AnimatePresence, motion } from 'motion/react';
 
 import { SystemStatus } from './components/SystemStatus';
@@ -25,6 +26,7 @@ const AppContent: React.FC = () => {
   const { isLocked, hasPin } = useSecurity();
   const { user, isLoading } = useApp();
   const [showSplash, setShowSplash] = useState(true);
+  const [hasChosenLogin, setHasChosenLogin] = useState(() => localStorage.getItem('6s_login_choice') === 'true');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [activePage, setActivePage] = useState<'home' | 'shield' | 'predictions' | 'social' | 'settings' | 'connections' | 'ghost' | 'statistics'>('home');
 
@@ -47,6 +49,14 @@ const AppContent: React.FC = () => {
 
   if (showSplash) return <SplashScreen />;
   if (isLoading) return <SplashScreen />;
+
+  // Only show LoginChoice if we don't have a user, haven't made a choice yet, and don't have a PIN
+  if (!hasChosenLogin && !user && !hasPin) {
+    return <LoginChoice onChoice={() => {
+      setHasChosenLogin(true);
+      localStorage.setItem('6s_login_choice', 'true');
+    }} />;
+  }
 
   if (!hasPin) return <Onboarding />;
   if (!user) return <Setup />;

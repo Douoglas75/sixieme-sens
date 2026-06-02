@@ -24,6 +24,7 @@ interface AppContextType {
   addContact: (contact: any) => void;
   requestGhostTask: (taskName: string) => Promise<void>;
   removeAlert: (id: string) => void;
+  clearAllAlerts: () => void;
   addAlert: (alert: Alert) => void;
   dismissPrediction: (id: string) => void;
   syncBluetoothDevices: () => Promise<void>;
@@ -52,7 +53,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const unsubscribe = dataIntelligence.subscribe((data) => {
       setLiveData(prev => [data, ...prev].slice(0, 50));
     });
-    return unsubscribe;
+
+    // Handle Android Native Data
+    const handleNativeData = (e: any) => {
+      const data = e.detail;
+      dataIntelligence.pushData({
+        source: data.source || 'Native Device',
+        type: data.type,
+        value: data.value,
+        timestamp: Date.now()
+      });
+    };
+
+    const handleNativeConnection = (e: any) => {
+      const { address, status } = e.detail;
+      setDevices(prev => prev.map(d => d.id === address ? { ...d, connected: status === 'connected', connecting: false } : d));
+      
+      if (status === 'connected') {
+        addAlert({
+          title: 'Appareil Connecté (Native)',
+          desc: `La connexion native avec l'appareil ${address} est établie.`,
+          type: 'green',
+          icon: '✅',
+          time: 'À l\'instant',
+          actions: []
+        });
+      }
+    };
+
+    window.addEventListener('onDataReceived' as any, handleNativeData);
+    window.addEventListener('onConnectionStateChange' as any, handleNativeConnection);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('onDataReceived' as any, handleNativeData);
+      window.removeEventListener('onConnectionStateChange' as any, handleNativeConnection);
+    };
   }, []);
 
   // Update data stream based on connections
@@ -65,6 +101,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const removeAlert = (title: string) => {
     setAlerts(prev => prev.filter(a => a.title !== title));
+  };
+
+  const clearAllAlerts = () => {
+    setAlerts([]);
   };
 
   const addAlert = (alert: Alert) => {
@@ -129,7 +169,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateInsights = async (userData: User) => {
     setIsGenerating(true);
     try {
-      const { alerts: newAlerts, predictions: newPredictions } = await generatePersonalizedInsights(userData);
+      let weatherData = null;
+      const weatherApp = apps.find(a => a.id === 'weather' && a.linked);
+      
+      if (weatherApp) {
+        try {
+          // Try to get current location for weather
+          const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+          });
+          
+          const wRes = await fetch(`/api/data/weather?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+          if (wRes.ok) {
+            weatherData = await wRes.json();
+          }
+        } catch (e) {
+          console.warn("Could not fetch real weather data, proceeding without it.", e);
+        }
+      }
+
+      const { alerts: newAlerts, predictions: newPredictions } = await generatePersonalizedInsights(userData, weatherData);
       setAlerts(newAlerts);
       setPredictions(newPredictions);
     } catch (error) {
@@ -137,21 +196,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const generateMockData = () => {
-    const defaultUser: User = {
-      name: 'Utilisateur',
-      sleep: 7,
-      activity: 'medium',
-      finance: 'ok',
-      contacts: [
-        { name: 'Sarah L.', relation: 'Ami', lastContact: 2 },
-        { name: 'Marc D.', relation: 'Famille', lastContact: 15 },
-        { name: 'Julie V.', relation: 'Collègue', lastContact: 30 }
-      ]
-    };
-    setUser(defaultUser);
   };
 
   useEffect(() => {
@@ -177,6 +221,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               const { data } = await res.json();
               encryptedUser = data;
             }
+
+            try {
+              const statusRes = await fetch('/api/apps/status?userId=default_user', { signal });
+              if (statusRes.ok) {
+                const statusData = await statusRes.json();
+                setApps(prev => prev.map(app => {
+                  if (app.id.startsWith('google-')) {
+                    return { ...app, linked: statusData.google };
+                  }
+                  if (app.id === 'spotify') {
+                    return { ...app, linked: statusData.spotify };
+                  }
+                  if (app.id === 'weather') {
+                    return { ...app, linked: statusData.weather };
+                  }
+                  if (app.id === 'plaid') {
+                    return { ...app, linked: statusData.plaid };
+                  }
+                  return app;
+                }));
+              }
+            } catch (statusErr) {
+              console.warn("Failed to lookup real-world app connections status", statusErr);
+            }
           } catch (e) {
             console.warn('Backend unreachable or timed out, using local storage.', e);
           }
@@ -194,8 +262,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             } catch (e) {
               console.error('Failed to decrypt user data', e);
             }
-          } else {
-            generateMockData();
           }
         }
       } catch (error) {
@@ -210,27 +276,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     if (!user || isLocked) return;
 
-    const intelligenceInterval = setInterval(() => {
-      const connectedDevices = devices.filter(d => d.connected).length;
-      const connectedApps = apps.filter(a => a.linked).length;
-
-      // Only generate dynamic alerts if we have active data sources
-      if (connectedDevices > 0 || connectedApps > 0) {
-        const randomChance = Math.random();
-        if (randomChance > 0.95) {
-          addAlert({
-            title: 'Optimisation Détectée',
-            desc: 'L\'IA a identifié une opportunité d\'économie sur vos abonnements.',
-            type: 'green',
-            icon: '💰',
-            time: 'À l\'instant',
-            actions: ['Voir détails']
-          });
-        }
-      }
-    }, 60000); // Every minute
-
-    return () => clearInterval(intelligenceInterval);
+    // Removed the intelligenceInterval that generated fake "Optimisation Détectée" alerts.
+    // Real alerts should only come from actual data analysis or Gemini insights.
   }, [user, isLocked, devices, apps]);
 
   const calculateRealScores = (userData: User) => {
@@ -265,10 +312,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     mockScores.t = total;
     setScores(mockScores);
 
-    setGhostTasks([
-      { id: '1', icon: '📊', bg: 'rgba(59,130,246,.15)', title: 'Audit Assurances', desc: 'Analyse en cours...', st: 'progress', stl: '⏳ En cours' },
-      { id: '2', icon: '📅', bg: 'rgba(16,185,129,.15)', title: 'Disponible', desc: 'Sélectionnez une tâche.', st: 'available', stl: '🟢 Dispo' }
-    ]);
+    // Only set ghost tasks if there's actual work to do, not hardcoded mocks
+    setGhostTasks([]);
   };
 
   const addContact = (contact: any) => {
@@ -350,9 +395,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addDevice = (device: Device) => {
-    analyzeConnection(device);
     setDevices(prev => {
       if (prev.find(d => d.id === device.id)) return prev;
+      analyzeConnection(device);
       return [...prev, { ...device, connected: true }];
     });
     
@@ -368,12 +413,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const connectDevice = async (id: string) => {
     const device = devices.find(d => d.id === id);
-    if (device) analyzeConnection(device);
+
+    const isAndroid = (window as any).AndroidBridge !== undefined;
+    if (isAndroid) {
+      setDevices(prev => prev.map(d => d.id === id ? { ...d, connecting: true } : d));
+      (window as any).AndroidBridge.connectToDevice(id);
+      return;
+    }
 
     setDevices(prev => prev.map(d => d.id === id ? { ...d, connecting: true } : d));
     
     setTimeout(() => {
       setDevices(prev => prev.map(d => d.id === id ? { ...d, connected: true, connecting: false } : d));
+      if (device) analyzeConnection(device);
       if (user) {
         calculateRealScores({ ...user });
       }
@@ -391,11 +443,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const linkApp = async (id: string) => {
     const app = apps.find(a => a.id === id);
-    if (app) analyzeConnection(app);
+
+    const isWebView = (window as any).AndroidBridge !== undefined || /wv|Android.*Version\/[0-9.]+/i.test(navigator.userAgent);
+    if (id.startsWith('google-') && isWebView) {
+      addAlert({
+        title: '📲 Synchronisation APK',
+        desc: "Google bloque l'authentification directe (disallowed_useragent) au sein d'une WebView APK. Ouvrez simplement l'adresse de l'application dans Chrome sur votre smartphone pour lier vos comptes Google Fit & Google Agenda en 1 clic !",
+        type: 'yellow',
+        icon: '🔑',
+        time: 'À l\'instant',
+        actions: [
+          {
+            label: 'Copier le lien Web',
+            onClick: () => {
+              navigator.clipboard.writeText(window.location.origin);
+              addAlert({
+                title: 'Lien Copié !',
+                desc: 'Ouvrez ce lien dans Google Chrome pour lier votre compte.',
+                type: 'green',
+                icon: '📋',
+                time: "À l'instant",
+                actions: []
+              });
+            }
+          }
+        ]
+      });
+      return;
+    }
 
     try {
       let authUrl = '';
-      if (id === 'google-fit' || id === 'calendar' || id === 'gmail') {
+      if (id.startsWith('google-')) {
         const res = await fetch('/api/auth/google/url');
         const data = await res.json();
         authUrl = data.url;
@@ -403,6 +482,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const res = await fetch('/api/auth/spotify/url');
         const data = await res.json();
         authUrl = data.url;
+      } else if (id === 'weather') {
+        // Weather just needs the API key in .env, no OAuth popup
+        addAlert({
+          title: 'Configuration Météo',
+          desc: 'L\'intuition environnementale est active via OpenWeatherMap (Clé API requise en backend).',
+          type: 'green',
+          icon: '🌤️',
+          time: 'À l\'instant',
+          actions: []
+        });
+        setApps(prev => prev.map(a => a.id === 'weather' ? { ...a, linked: true } : a));
+        return;
+      } else if (id === 'plaid') {
+        const res = await fetch('/api/auth/plaid/create-link-token', { method: 'POST' });
+        if (res.ok) {
+          addAlert({
+            title: 'Plaid Prêt',
+            desc: 'Le jeton de connexion bancaire a été généré avec succès. Le système est prêt pour l\'intégration réelle.',
+            type: 'green',
+            icon: '🏦',
+            time: 'À l\'instant',
+            actions: []
+          });
+          setApps(prev => prev.map(a => a.id === 'plaid' ? { ...a, linked: true } : a));
+        } else {
+          addAlert({
+            title: 'Erreur Plaid',
+            desc: 'Vérifiez vos identifiants Plaid dans les Secrets (Client ID / Secret).',
+            type: 'red',
+            icon: '⚠️',
+            time: 'À l\'instant',
+            actions: []
+          });
+        }
+        return;
       }
 
       if (authUrl) {
@@ -419,21 +533,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return;
       }
 
-      // Fallback for other apps
-      setApps(prev => prev.map(a => a.id === id ? { ...a, linking: true } : a));
-      
-      setTimeout(() => {
-        setApps(prev => prev.map(a => a.id === id ? { ...a, linked: true, linking: false } : a));
-        
-        addAlert({
-          title: 'Application Liée',
-          desc: `${app?.name} partage désormais ses données avec 6S.`,
-          type: 'green',
-          icon: '🔗',
-          time: 'À l\'instant',
-          actions: []
-        });
-      }, 1200);
+      // No fallback anymore - we want real connections
+      addAlert({
+        title: 'Connexion Requise',
+        desc: `Le service ${app?.name} nécessite une configuration manuelle ou n'est pas encore disponible pour la synchronisation automatique.`,
+        type: 'yellow',
+        icon: '⚠️',
+        time: 'À l\'instant',
+        actions: []
+      });
     } catch (error) {
       console.error('OAuth error:', error);
     }
@@ -447,25 +555,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
         const provider = event.data.provider;
+        let connectedApp: AppConnection | undefined;
+
         if (provider === 'google') {
-          setApps(prev => prev.map(app => 
-            (app.id === 'google-fit' || app.id === 'calendar' || app.id === 'gmail') 
-              ? { ...app, linked: true } 
-              : app
-          ));
+          setApps(prev => prev.map(app => {
+            if (app.id.startsWith('google-')) {
+              connectedApp = app;
+              return { ...app, linked: true };
+            }
+            return app;
+          }));
         } else if (provider === 'spotify') {
-          setApps(prev => prev.map(app => 
-            app.id === 'spotify' ? { ...app, linked: true } : app
-          ));
+          setApps(prev => prev.map(app => {
+            if (app.id === 'spotify') {
+              connectedApp = app;
+              return { ...app, linked: true };
+            }
+            return app;
+          }));
         }
-        addAlert({
-          title: 'Connexion Réussie',
-          desc: `Votre compte ${provider.charAt(0).toUpperCase() + provider.slice(1)} est maintenant lié.`,
-          type: 'green',
-          icon: '✅',
-          time: 'À l\'instant',
-          actions: []
-        });
+
+        if (connectedApp) {
+          analyzeConnection(connectedApp);
+          addAlert({
+            title: 'Connexion Réussie',
+            desc: `Votre compte ${provider.charAt(0).toUpperCase() + provider.slice(1)} est maintenant lié et prêt pour l'analyse.`,
+            type: 'green',
+            icon: '✅',
+            time: 'À l\'instant',
+            actions: []
+          });
+        }
       }
     };
     window.addEventListener('message', handleMessage);
@@ -477,6 +597,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user, setUser, scores, alerts, predictions, ghostTasks, devices, apps, permissions, 
       liveData, togglePermission, connectDevice, addDevice, linkApp, addContact, requestGhostTask, 
       removeAlert, 
+      clearAllAlerts,
       addAlert, 
       dismissPrediction, 
       syncBluetoothDevices,

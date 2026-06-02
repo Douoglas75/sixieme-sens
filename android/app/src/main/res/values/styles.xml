@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SixiemeSens" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#3B82F6</item>
+        <item name="colorPrimaryDark">#2563EB</item>
+        <item name="colorAccent">#10B981</item>
+    </style>
+</resources>

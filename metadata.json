@@ -1,6 +1,6 @@
 {
-  "name": "Sixième Sens",
-  "description": "L'Intelligence Anticipative de Vie - IA qui anticipe vos besoins, protège votre attention et automatise votre quotidien.",
+  "name": "6S Intuition Native",
+  "description": "Application d'assistance prédictive avec intégration Bluetooth native Android pour un monitoring biométrique en temps réel sans limitations de navigateur.",
   "requestFramePermissions": [
     "camera",
     "microphone",

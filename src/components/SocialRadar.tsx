@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { Phone, MessageSquare, UserPlus, X, Check } from 'lucide-react';
+import { Phone, MessageSquare, UserPlus, X, Check, Zap } from 'lucide-react';
+import { hapticFeedback } from '../utils/haptics';
 
 export const SocialRadar: React.FC = () => {
-  const { user, addContact } = useApp();
+  const { user, addContact, addAlert } = useApp();
   const [showAddModal, setShowAddModal] = useState(false);
   const [newContact, setNewContact] = useState({ name: '', relation: 'Ami' });
 
@@ -110,20 +111,40 @@ export const SocialRadar: React.FC = () => {
               <h3 className="text-sm font-bold">{c.name}</h3>
               <p className="text-[10px] text-[#a0a0cc]">{c.relation} · Il y a {c.lastContact}j</p>
               
-              <div className="flex gap-2 mt-2">
-                <button 
-                  onClick={() => alert(`Nudge envoyé à ${c.name}`)}
-                  className="px-3 py-1.5 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-lg text-[10px] font-bold flex items-center gap-1 hover:brightness-110 transition-all active:scale-95"
-                >
-                  <MessageSquare size={10} /> Nudge
-                </button>
-                <button 
-                  onClick={() => alert(`Appel programmé avec ${c.name}`)}
-                  className="px-3 py-1.5 bg-[#0a0a1a] rounded-lg text-[10px] font-bold flex items-center gap-1 text-[#a0a0cc] border border-white/5 hover:border-[#7c3aed]/30 transition-all active:scale-95"
-                >
-                  <Phone size={10} /> Appel
-                </button>
-              </div>
+                <div className="flex gap-2 mt-2">
+                  <button 
+                    onClick={() => {
+                      hapticFeedback('medium');
+                      addAlert({
+                        title: 'Nudge Envoyé',
+                        desc: `Un signal de rappel a été envoyé à ${c.name} via Ghost-Protocol.`,
+                        type: 'green',
+                        icon: 'Zap',
+                        time: 'À l\'instant',
+                        actions: []
+                      });
+                    }}
+                    className="px-3 py-1.5 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-lg text-[10px] font-bold flex items-center gap-1 hover:brightness-110 transition-all active:scale-95"
+                  >
+                    <MessageSquare size={10} /> Nudge
+                  </button>
+                  <button 
+                    onClick={() => {
+                      hapticFeedback('light');
+                      addAlert({
+                        title: 'Appel Programmé',
+                        desc: `Une session de communication avec ${c.name} a été planifiée par Ghost-Admin.`,
+                        type: 'blue' as any,
+                        icon: 'Phone',
+                        time: 'À l\'instant',
+                        actions: []
+                      });
+                    }}
+                    className="px-3 py-1.5 bg-[#0a0a1a] rounded-lg text-[10px] font-bold flex items-center gap-1 text-[#a0a0cc] border border-white/5 hover:border-[#7c3aed]/30 transition-all active:scale-95"
+                  >
+                    <Phone size={10} /> Appel
+                  </button>
+                </div>
             </div>
             <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold ${
               c.health === 'healthy' ? 'bg-emerald-500/10 text-emerald-500' : 

@@ -40,6 +40,10 @@ class DataIntelligenceService {
     this.listeners.forEach(l => l(data));
   }
 
+  pushData(data: RealTimeData) {
+    this.emit(data);
+  }
+
   getHistory() {
     return this.history;
   }
@@ -100,16 +104,10 @@ class DataIntelligenceService {
         }
       }
 
-      // 4. Finance (Stays simulated for now as Open Banking requires real API keys)
-      if (connectedApps.includes('bank')) {
-        if (Math.random() > 0.98) {
-          this.emit({
-            source: 'Banque',
-            type: 'finance',
-            value: { amount: -(Math.random() * 40 + 5).toFixed(2), category: 'Shopping' },
-            timestamp: Date.now()
-          });
-        }
+      // 4. Finance (Plaid)
+      if (connectedApps.includes('plaid')) {
+        // Real Plaid transactions would be fetched here
+        // For now, we don't emit fake data to stay "full real"
       }
     }, 10000); // Fetch every 10s to avoid rate limits
   }

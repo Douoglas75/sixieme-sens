@@ -127,19 +127,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <h2 className="text-lg font-bold flex items-center gap-2">
             <Zap size={18} className="text-amber-400" /> Alertes Prédictives
           </h2>
-          <div className="flex gap-3">
-            <span 
+          <div className="flex gap-4">
+            <button 
               onClick={() => onNavigate('statistics')}
-              className="text-xs text-[#06b6d4] font-bold cursor-pointer"
+              className="text-[10px] text-[#06b6d4] font-bold uppercase tracking-wider px-2 py-1 hover:bg-[#06b6d4]/10 rounded-lg transition-colors"
             >
               Stats
-            </span>
-            <span 
+            </button>
+            <button 
               onClick={() => onNavigate('predictions')}
-              className="text-xs text-[#7c3aed] font-bold cursor-pointer"
+              className="text-[10px] text-[#7c3aed] font-bold uppercase tracking-wider px-2 py-1 hover:bg-[#7c3aed]/10 rounded-lg transition-colors"
             >
               Tout voir
-            </span>
+            </button>
           </div>
         </div>
         
@@ -154,9 +154,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                 alert.type === 'red' ? 'bg-red-500/10 text-red-500' : alert.type === 'yellow' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'
               }`}>
-                {alert.icon === 'HeartPulse' && <HeartPulse size={20} />}
-                {alert.icon === 'Wallet' && <Wallet size={20} />}
-                {alert.icon === 'Zap' && <Zap size={20} />}
+                {alert.icon === 'HeartPulse' ? <HeartPulse size={20} /> :
+                 alert.icon === 'Wallet' ? <Wallet size={20} /> :
+                 alert.icon === 'Zap' ? <Zap size={20} /> :
+                 <Zap size={20} />}
               </div>
               <div className="flex-1">
                 <h3 className="text-sm font-bold mb-1">{alert.title}</h3>
