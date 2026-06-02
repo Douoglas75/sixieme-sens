@@ -363,7 +363,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 800);
   };
 
-  const togglePermission = (id: string) => {
+  // Dynamic Synchronisation of Native Permissions in WebView / APK mode
+  useEffect(() => {
+    const checkNativePermissions = () => {
+      const isAndroid = (window as any).AndroidBridge !== undefined;
+      if (isAndroid && (window as any).AndroidBridge.checkLocationPermission) {
+        try {
+          const hasLocation = (window as any).AndroidBridge.checkLocationPermission();
+          setPermissions(prev => prev.map(p => {
+            if (p.id === 'location') {
+              return { ...p, granted: hasLocation };
+            }
+            return p;
+          }));
+        } catch (e) {
+          console.error("Error checking native location permission", e);
+        }
+      }
+    };
+    
+    checkNativePermissions();
+    window.addEventListener('focus', checkNativePermissions);
+    return () => window.removeEventListener('focus', checkNativePermissions);
+  }, []);
+
+  const togglePermission = async (id: string) => {
+    const isAndroid = (window as any).AndroidBridge !== undefined;
+    
+    if (id === 'location') {
+      if (isAndroid) {
+        const hasLocation = (window as any).AndroidBridge.checkLocationPermission ? (window as any).AndroidBridge.checkLocationPermission() : false;
+        if (!hasLocation) {
+          addAlert({
+            title: 'Permission GPS Requise',
+            desc: "Redirection automatique vers les paramètres système de votre mobile pour accorder les droits de localisation.",
+            type: 'yellow',
+            icon: '📍',
+            time: 'À l\'instant',
+            actions: []
+          });
+          if ((window as any).AndroidBridge.openAppSettings) {
+            (window as any).AndroidBridge.openAppSettings();
+          }
+          return;
+        }
+      } else {
+        // Web Geolocation Request
+        try {
+          await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
+          });
+        } catch (err) {
+          console.warn("Geolocation permission error or rejected:", err);
+        }
+      }
+    }
+    
     setPermissions(prev => prev.map(p => p.id === id ? { ...p, granted: !p.granted } : p));
   };
 

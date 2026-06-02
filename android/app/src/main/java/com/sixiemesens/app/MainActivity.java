@@ -1,9 +1,14 @@
 package com.sixiemesens.app;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.webkit.GeolocationPermissions;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -27,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setDatabaseEnabled(true);
+        webSettings.setGeolocationEnabled(true);
         
         // Allow mixed content for local dev if needed
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -34,15 +40,48 @@ public class MainActivity extends AppCompatActivity {
         }
 
         bluetoothModule = new BluetoothModule(this, webView);
-        webView.addJavascriptInterface(new WebAppInterface(bluetoothModule), "AndroidBridge");
+        webView.addJavascriptInterface(new WebAppInterface(this, bluetoothModule), "AndroidBridge");
 
         webView.setWebViewClient(new WebViewClient());
+        
+        // Support HTML5 Geolocation prompt in WebView
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                // If the app has native location permission, automatically allow WebView geolocation.
+                if (hasLocationPermission()) {
+                    callback.invoke(origin, true, false);
+                } else {
+                    // Otherwise request native permission first or yield
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                    }, PERMISSION_REQUEST_CODE);
+                    callback.invoke(origin, false, false);
+                }
+            }
+        });
         
         // Load the app URL from environment or fallback
         String appUrl = "https://sixieme-sens-doogie75s-projects.vercel.app"; 
         webView.loadUrl(appUrl);
 
         checkPermissions();
+    }
+
+    public boolean hasLocationPermission() {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    public void openAppSettings() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", getPackageName(), null);
+            intent.setData(uri);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Exception e) {
+            android.util.Log.e("MainActivity", "Error opening app settings", e);
+        }
     }
 
     private void checkPermissions() {

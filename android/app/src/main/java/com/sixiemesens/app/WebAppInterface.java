@@ -3,9 +3,11 @@ package com.sixiemesens.app;
 import android.webkit.JavascriptInterface;
 
 public class WebAppInterface {
+    private MainActivity mainActivity;
     private BluetoothModule bluetoothModule;
 
-    public WebAppInterface(BluetoothModule bluetoothModule) {
+    public WebAppInterface(MainActivity mainActivity, BluetoothModule bluetoothModule) {
+        this.mainActivity = mainActivity;
         this.bluetoothModule = bluetoothModule;
     }
 
@@ -27,5 +29,20 @@ public class WebAppInterface {
     @JavascriptInterface
     public void disconnectDevice() {
         bluetoothModule.disconnect();
+    }
+
+    @JavascriptInterface
+    public void openAppSettings() {
+        mainActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mainActivity.openAppSettings();
+            }
+        });
+    }
+
+    @JavascriptInterface
+    public boolean checkLocationPermission() {
+        return mainActivity.hasLocationPermission();
     }
 }

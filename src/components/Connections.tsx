@@ -237,13 +237,30 @@ export const Connections: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl space-y-1.5 text-[9.5px]">
-          <h4 className="font-bold text-amber-400 flex items-center gap-1.5">
-            ⚠️ Bluetooth & Localisation (APK Android)
+        <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl space-y-2 text-[9.5px]">
+          <h4 className="font-bold text-amber-400 flex items-center justify-between gap-1.5">
+            <span className="flex items-center gap-1.5">⚠️ Bluetooth & Localisation (APK Android)</span>
+            {isAndroid && (
+              <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${permissions.find(p => p.id === 'location')?.granted ? 'bg-emerald-500/25 text-emerald-400' : 'bg-red-500/25 text-red-400'}`}>
+                {permissions.find(p => p.id === 'location')?.granted ? 'Accordé' : 'Requis'}
+              </span>
+            )}
           </h4>
           <p className="text-[#a0a0cc] leading-relaxed">
             Pour que le Bluetooth trouve vos appareils sur votre téléphone Android, vous <strong>devez</strong> accorder la <strong>permission de localisation (GPS)</strong> de l'application dans les paramètres Android de votre smartphone. Google l'impose pour détecter les ondes BLE.
           </p>
+          {isAndroid && !permissions.find(p => p.id === 'location')?.granted && (
+            <button
+              onClick={() => {
+                if ((window as any).AndroidBridge?.openAppSettings) {
+                  (window as any).AndroidBridge.openAppSettings();
+                }
+              }}
+              className="w-full mt-1 px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 active:scale-95 text-white font-bold rounded-xl text-[9.5px] uppercase tracking-wider transition-all"
+            >
+              🔄 Activer maintenant (Ouvrir Paramètres)
+            </button>
+          )}
         </div>
       </section>
 
