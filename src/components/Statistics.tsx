@@ -136,7 +136,6 @@ export const Statistics: React.FC<StatisticsProps> = ({ onBack }) => {
         <div className="space-y-4">
           {[
             { name: 'Capteurs Biométriques', value: 95, color: 'bg-emerald-500', connected: devices.some(d => d.connected) },
-            { name: 'Open Banking', value: 88, color: 'bg-blue-500', connected: apps.some(a => a.id === 'bank' && a.linked) },
             { name: 'Radar Social', value: 72, color: 'bg-[#7c3aed]', connected: apps.some(a => a.id === 'whatsapp' && a.linked) },
             { name: 'Analyse Sémantique', value: 64, color: 'bg-amber-500', connected: apps.some(a => a.id === 'gmail' && a.linked) }
           ].filter(s => s.connected).map((source, i) => (

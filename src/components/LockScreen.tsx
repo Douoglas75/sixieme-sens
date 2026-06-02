@@ -79,6 +79,20 @@ export const LockScreen: React.FC = () => {
           <Delete size={24} />
         </button>
       </div>
+
+      <button
+        onClick={() => {
+          hapticFeedback('heavy');
+          localStorage.removeItem('6s_auth_ok');
+          localStorage.removeItem('6s_auth_salt');
+          localStorage.removeItem('6s_auth_vf');
+          localStorage.removeItem('6s_lock_on_start');
+          window.location.reload();
+        }}
+        className="mt-8 px-6 py-4 bg-white/5 hover:bg-white/10 active:scale-95 text-[#a0a0cc] border border-white/10 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all"
+      >
+        🔓 Supprimer le code PIN & Accéder à l'app
+      </button>
     </div>
   );
 };

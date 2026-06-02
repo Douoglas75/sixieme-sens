@@ -16,7 +16,7 @@ export const Onboarding: React.FC = () => {
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [step, setStep] = useState<'pin' | 'confirm'>('pin');
-  const { setupPin } = useSecurity();
+  const { setupPin, skipPinSetup } = useSecurity();
 
   const nextSlide = () => {
     if (currentSlide < slides.length - 1) {
@@ -82,12 +82,19 @@ export const Onboarding: React.FC = () => {
           </button>
         </div>
 
-        {pin.length === 4 && (
+        {pin.length === 4 ? (
           <button 
             onClick={() => handlePinSubmit(pin)}
-            className="mt-12 w-full py-4 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-xl font-bold shadow-lg shadow-[#7c3aed]/40"
+            className="mt-12 w-full py-4 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-xl font-bold shadow-lg shadow-[#7c3aed]/40 active:scale-95 transition-transform"
           >
             Continuer
+          </button>
+        ) : (
+          <button 
+            onClick={skipPinSetup}
+            className="mt-12 w-full py-4 bg-white/5 hover:bg-white/10 text-[#a0a0cc] border border-white/10 rounded-xl font-bold active:scale-95 transition-all text-sm uppercase tracking-wider"
+          >
+            ⚡ Sans Code / PIN (Accès Direct)
           </button>
         )}
       </div>
@@ -128,14 +135,14 @@ export const Onboarding: React.FC = () => {
         </div>
         <div className="flex gap-4">
           <button 
-            onClick={() => setShowPinSetup(true)}
-            className="flex-1 py-4 bg-[#1a1a3e] text-[#a0a0cc] rounded-xl font-semibold"
+            onClick={skipPinSetup}
+            className="flex-1 py-4 bg-[#1a1a3e] text-[#a0a0cc] hover:bg-white/5 active:scale-95 transition-all rounded-xl font-semibold"
           >
             Passer
           </button>
           <button 
             onClick={nextSlide}
-            className="flex-1 py-4 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white rounded-xl font-bold shadow-lg shadow-[#7c3aed]/40"
+            className="flex-1 py-4 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white rounded-xl font-bold active:scale-95 transition-all shadow-lg shadow-[#7c3aed]/40"
           >
             {currentSlide === slides.length - 1 ? 'Commencer' : 'Suivant'}
           </button>

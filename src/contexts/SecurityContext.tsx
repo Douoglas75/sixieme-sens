@@ -3,8 +3,10 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 interface SecurityContextType {
   isLocked: boolean;
   hasPin: boolean;
+  onboardingDone: boolean;
   unlock: (pin: string) => Promise<boolean>;
   setupPin: (pin: string) => Promise<void>;
+  skipPinSetup: () => void;
   lock: () => void;
   encrypt: (data: any) => Promise<string>;
   decrypt: (encrypted: string) => Promise<any>;
@@ -22,8 +24,13 @@ const CONFIG = {
 };
 
 export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isLocked, setIsLocked] = useState(true);
+  const [isLocked, setIsLocked] = useState(() => {
+    return localStorage.getItem('6s_lock_on_start') === 'true';
+  });
   const [hasPin, setHasPin] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(() => {
+    return localStorage.getItem('6s_onboarding_done') === 'true' || localStorage.getItem('6s_auth_ok') === 'true';
+  });
   const [key, setKey] = useState<CryptoKey | null>(null);
 
   useEffect(() => {
@@ -32,7 +39,15 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
     const pinExists = localStorage.getItem('6s_auth_ok') === 'true';
     setHasPin(pinExists);
+    if (pinExists) {
+      setOnboardingDone(true);
+    }
   }, []);
+
+  const skipPinSetup = () => {
+    localStorage.setItem('6s_onboarding_done', 'true');
+    setOnboardingDone(true);
+  };
 
   const b64 = (buf: ArrayBuffer) => {
     const b = new Uint8Array(buf);
@@ -170,7 +185,7 @@ export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <SecurityContext.Provider value={{ isLocked, hasPin, unlock, setupPin, lock, encrypt, decrypt }}>
+    <SecurityContext.Provider value={{ isLocked, hasPin, onboardingDone, unlock, setupPin, skipPinSetup, lock, encrypt, decrypt }}>
       {children}
     </SecurityContext.Provider>
   );

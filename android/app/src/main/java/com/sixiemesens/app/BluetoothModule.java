@@ -49,20 +49,59 @@ public class BluetoothModule {
     }
 
     public void startScan() {
-        if (bluetoothLeScanner == null || isScanning) return;
+        if (bluetoothAdapter == null) {
+            BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+            if (bluetoothManager != null) {
+                bluetoothAdapter = bluetoothManager.getAdapter();
+            }
+        }
+        if (bluetoothAdapter != null && bluetoothAdapter.isEnabled() && bluetoothLeScanner == null) {
+            bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+        }
+
+        if (bluetoothLeScanner == null) {
+            Log.e(TAG, "BluetoothLeScanner is null (Bluetooth probably disabled or missing permission)");
+            try {
+                JSONObject errorJson = new JSONObject();
+                errorJson.put("error", "Bluetooth désactivé ou scanner non disponible");
+                sendToJS("onScanError", errorJson);
+            } catch (Exception e) {
+                Log.e(TAG, "Error sending onScanError", e);
+            }
+            return;
+        }
+
+        if (isScanning) return;
 
         discoveredDevices.clear();
         isScanning = true;
-        bluetoothLeScanner.startScan(scanCallback);
-        Log.d(TAG, "Scan started");
+        try {
+            bluetoothLeScanner.startScan(scanCallback);
+            Log.d(TAG, "Scan started");
+        } catch (Exception e) {
+            Log.e(TAG, "Error starting scan", e);
+            isScanning = false;
+            try {
+                JSONObject errorJson = new JSONObject();
+                errorJson.put("error", e.getMessage());
+                sendToJS("onScanError", errorJson);
+            } catch (Exception ex) {}
+            return;
+        }
         
         handler.postDelayed(this::stopScan, 15000);
     }
 
     public void stopScan() {
-        if (bluetoothLeScanner == null || !isScanning) return;
+        if (!isScanning) return;
         isScanning = false;
-        bluetoothLeScanner.stopScan(scanCallback);
+        if (bluetoothLeScanner != null) {
+            try {
+                bluetoothLeScanner.stopScan(scanCallback);
+            } catch (Exception e) {
+                Log.e(TAG, "Error stopping scan", e);
+            }
+        }
         Log.d(TAG, "Scan stopped");
         sendToJS("onScanFinished", null);
     }

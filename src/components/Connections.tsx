@@ -33,6 +33,19 @@ export const Connections: React.FC = () => {
 
       const handleScanFinished = () => setIsScanning(false);
 
+      const handleScanError = (e: any) => {
+        setIsScanning(false);
+        const errorMsg = e.detail?.error || "Bluetooth non disponible ou désactivé";
+        addAlert({
+          title: 'Erreur Bluetooth Android',
+          desc: `${errorMsg}. Veuillez vérifier que le Bluetooth est activé et que l'application a l'autorisation de localisation.`,
+          type: 'red',
+          icon: '❌',
+          time: 'À l\'instant',
+          actions: []
+        });
+      };
+
       const handleConnectionChange = (e: any) => {
         const { address, status } = e.detail;
         if (status === 'connected') {
@@ -42,21 +55,64 @@ export const Connections: React.FC = () => {
 
       window.addEventListener('onDeviceFound' as any, handleDeviceFound);
       window.addEventListener('onScanFinished' as any, handleScanFinished);
+      window.addEventListener('onScanError' as any, handleScanError);
       window.addEventListener('onConnectionStateChange' as any, handleConnectionChange);
 
       return () => {
         window.removeEventListener('onDeviceFound' as any, handleDeviceFound);
         window.removeEventListener('onScanFinished' as any, handleScanFinished);
+        window.removeEventListener('onScanError' as any, handleScanError);
         window.removeEventListener('onConnectionStateChange' as any, handleConnectionChange);
       };
     }
   }, [isAndroid]);
 
+  // Automatic Android permission check and redirection
+  React.useEffect(() => {
+    if (isAndroid) {
+      const hasLocation = permissions.find(p => p.id === 'location')?.granted;
+      if (hasLocation === false) {
+        addAlert({
+          title: '📍 Permission requise',
+          desc: 'Redirection automatique vers vos paramètres pour activer la localisation GPS, nécessaire pour trouver les appareils Bluetooth.',
+          type: 'yellow',
+          icon: '📍',
+          time: 'À l\'instant',
+          actions: []
+        });
+
+        const timer = setTimeout(() => {
+          if ((window as any).AndroidBridge?.openAppSettings) {
+            (window as any).AndroidBridge.openAppSettings();
+          }
+        }, 800);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isAndroid, permissions]);
+
   const startScan = async () => {
     if (isAndroid) {
       setIsScanning(true);
       setScanResults([]);
-      (window as any).AndroidBridge.startBluetoothScan();
+      try {
+        if ((window as any).AndroidBridge?.startScan) {
+          (window as any).AndroidBridge.startScan();
+        } else {
+          setIsScanning(false);
+          addAlert({
+            title: 'Pont Android Non Prêt',
+            desc: "L'interface de communication Bluetooth native n'est pas encore initialisée.",
+            type: 'red',
+            icon: '⚠️',
+            time: 'À l\'instant',
+            actions: []
+          });
+        }
+      } catch (err) {
+        setIsScanning(false);
+        console.error("Android startScan error:", err);
+      }
       return;
     }
 
@@ -141,22 +197,7 @@ export const Connections: React.FC = () => {
     <div className="space-y-6 pb-20">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold">🔗 Apps & Appareils</h2>
-        <button 
-          onClick={syncBluetoothDevices}
-          className="text-[10px] font-bold text-[#7c3aed] uppercase tracking-widest flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#7c3aed]/10 border border-[#7c3aed]/20"
-        >
-          <Zap size={12} /> Ghost Sync
-        </button>
       </div>
-
-      <section className="p-4 rounded-2xl bg-[#7c3aed]/5 border border-[#7c3aed]/20">
-        <h3 className="text-[10px] font-bold text-[#7c3aed] uppercase tracking-widest mb-2 flex items-center gap-2">
-          🛡️ Protocole Ghost-Sync
-        </h3>
-        <p className="text-[10px] text-[#a0a0cc] leading-relaxed">
-          Pour éviter les fenêtres de couplage répétitives et les connexions inconnues, l'IA privilégie les appareils déjà autorisés par votre système. Le scan manuel est filtré pour ne détecter que les objets connectés compatibles (Santé, Fitness, Smart Home).
-        </p>
-      </section>
 
       {/* Live Data Stream */}
       {liveData.length > 0 && (
@@ -206,34 +247,46 @@ export const Connections: React.FC = () => {
           <p className="font-bold text-white">Pour lier vos comptes Google Fit & Google Agenda :</p>
           <div className="flex gap-2 items-start">
             <span className="text-[#a0a0cc] font-black">1.</span>
-            <p>Ouvrez l'application depuis le navigateur Chrome de votre mobile :</p>
+            <p>Ouvrez l'application directement dans le navigateur Chrome de votre mobile :</p>
           </div>
-          <div className="bg-black/80 p-2.5 rounded-xl border border-blue-500/20 font-mono text-[9px] select-all flex items-center justify-between text-blue-300">
-            <span className="truncate mr-2">{window.location.origin}</span>
-            <button 
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.origin);
-                addAlert({
-                  title: 'Lien copié !',
-                  desc: 'Collez ce lien dans Chrome pour finaliser la synchronisation.',
-                  type: 'green',
-                  icon: '📋',
-                  time: 'À l\'instant',
-                  actions: []
-                });
-              }}
-              className="px-2 py-1 bg-[#7c3aed]/20 hover:bg-[#7c3aed]/40 active:scale-95 text-white text-[8px] uppercase font-bold rounded animate-pulse"
+          
+          <div className="flex flex-col gap-2 mt-1 mb-2">
+            <a 
+              href={window.location.origin}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full text-center px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 active:scale-95 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2"
             >
-              Copier
-            </button>
+              🌐 Ouvrir 6S dans Chrome mobile (Pour lier les comptes)
+            </a>
+            <div className="bg-black/60 p-2 rounded-xl text-[8.5px] font-mono text-blue-300 flex items-center justify-between gap-2 overflow-hidden border border-blue-500/10">
+              <span className="truncate">{window.location.origin}</span>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.origin);
+                  addAlert({
+                    title: 'Lien copié !',
+                    desc: 'Collez ce lien dans Chrome pour finaliser la synchronisation.',
+                    type: 'green',
+                    icon: '📋',
+                    time: 'À l\'instant',
+                    actions: []
+                  });
+                }}
+                className="px-2 py-1 bg-[#7c3aed]/20 hover:bg-[#7c3aed]/40 text-white rounded text-[8px] font-bold"
+              >
+                Copier
+              </button>
+            </div>
           </div>
+
           <div className="flex gap-2 items-start mt-2">
             <span className="text-[#a0a0cc] font-black">2.</span>
             <p>Cliquez sur "Lier" pour Google directement dans Chrome.</p>
           </div>
           <div className="flex gap-2 items-start">
             <span className="text-[#a0a0cc] font-black">3.</span>
-            <p>Rouvrez votre APK : vos données réelles se synchroniseront instantanément et automatiquement grâce à notre cloud sécurisé !</p>
+            <p>De retour dans votre APK, vos données réelles se synchroniseront de manière transparente !</p>
           </div>
         </div>
 
@@ -511,10 +564,6 @@ export const Connections: React.FC = () => {
           <div className="p-3 rounded-xl bg-white/5 border border-white/10">
             <h4 className="text-[9px] font-bold text-white mb-1">OpenWeatherMap</h4>
             <p className="text-[8px] text-[#a0a0cc]">Clé requise : <code className="bg-black/50 px-1 rounded text-emerald-500">OPENWEATHER_API_KEY</code></p>
-          </div>
-          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-            <h4 className="text-[9px] font-bold text-white mb-1">Plaid (Banque)</h4>
-            <p className="text-[8px] text-[#a0a0cc]">Secrets requis : <code className="bg-black/50 px-1 rounded text-emerald-500">PLAID_CLIENT_ID</code>, <code className="bg-black/50 px-1 rounded text-emerald-500">PLAID_SECRET</code></p>
           </div>
         </div>
       </section>

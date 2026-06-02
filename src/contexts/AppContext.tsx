@@ -236,9 +236,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   if (app.id === 'weather') {
                     return { ...app, linked: statusData.weather };
                   }
-                  if (app.id === 'plaid') {
-                    return { ...app, linked: statusData.plaid };
-                  }
                   return app;
                 }));
               }
@@ -548,29 +545,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           actions: []
         });
         setApps(prev => prev.map(a => a.id === 'weather' ? { ...a, linked: true } : a));
-        return;
-      } else if (id === 'plaid') {
-        const res = await fetch('/api/auth/plaid/create-link-token', { method: 'POST' });
-        if (res.ok) {
-          addAlert({
-            title: 'Plaid Prêt',
-            desc: 'Le jeton de connexion bancaire a été généré avec succès. Le système est prêt pour l\'intégration réelle.',
-            type: 'green',
-            icon: '🏦',
-            time: 'À l\'instant',
-            actions: []
-          });
-          setApps(prev => prev.map(a => a.id === 'plaid' ? { ...a, linked: true } : a));
-        } else {
-          addAlert({
-            title: 'Erreur Plaid',
-            desc: 'Vérifiez vos identifiants Plaid dans les Secrets (Client ID / Secret).',
-            type: 'red',
-            icon: '⚠️',
-            time: 'À l\'instant',
-            actions: []
-          });
-        }
         return;
       }
 

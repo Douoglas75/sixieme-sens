@@ -23,7 +23,7 @@ import { WifiOff } from 'lucide-react';
 import { useBackgroundTasks } from './hooks/useBackgroundTasks';
 
 const AppContent: React.FC = () => {
-  const { isLocked, hasPin, setupPin } = useSecurity();
+  const { isLocked, hasPin, setupPin, skipPinSetup, onboardingDone } = useSecurity();
   const { user, isLoading, setUser } = useApp();
   const [showSplash, setShowSplash] = useState(true);
   const [hasChosenLogin, setHasChosenLogin] = useState(() => localStorage.getItem('6s_login_choice') === 'true');
@@ -67,17 +67,17 @@ const AppContent: React.FC = () => {
           { name: 'Émilie', relation: 'Collègue', lastContact: 1 }
         ]
       });
-      // 2. Automatically set up local pin to bypass onboarding
-      await setupPin('1234');
+      // 2. Bypass onboarding directly without setting up a PIN
+      skipPinSetup();
     }
   };
 
-  // Only show LoginChoice if we don't have a user, haven't made a choice yet, and don't have a PIN
-  if (!hasChosenLogin && !user && !hasPin) {
+  // Only show LoginChoice if we don't have a user, haven't made a choice yet, and onboarding not done
+  if (!hasChosenLogin && !user && !onboardingDone) {
     return <LoginChoice onChoice={handleChoice} />;
   }
 
-  if (!hasPin) return <Onboarding />;
+  if (!onboardingDone) return <Onboarding />;
   if (!user) return <Setup />;
   if (isLocked) return <LockScreen />;
 
