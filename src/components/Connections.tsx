@@ -238,86 +238,6 @@ export const Connections: React.FC = () => {
         </section>
       )}
 
-      {/* Solution de Synchronisation Hybride (APK / WebView) */}
-      <section className="p-5 rounded-3xl bg-gradient-to-br from-[#1e1b4b] to-[#0a051d] border border-blue-500/30 space-y-3">
-        <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
-          📲 Guide de Connexion Mobile (APK)
-        </h3>
-        <p className="text-[10.5px] text-[#a0a0cc] leading-relaxed">
-          Google bloque l'authentification directe (erreur <code className="text-[#ec4899] font-mono bg-black/40 px-1 rounded text-[9.5px]">disallowed_useragent</code>) au sein des applications Android APK non vérifiées.
-        </p>
-
-        {/* Alerte Erreur 403 / Access Denied de Google */}
-        <div className="p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-2xl text-[9.5px] text-amber-300 space-y-1.5 leading-relaxed">
-          <div className="flex items-center gap-1.5 font-bold text-amber-400 text-[10px]">
-            <span>⚠️</span>
-            <span>Résoudre l'erreur Google "Accès bloqué / Erreur 403 : access_denied" :</span>
-          </div>
-          <p>
-            Si l'authentification fonctionne sur votre ordinateur mais affiche cette erreur sur votre smartphone, c'est parce que votre compte Google mobile n'a pas encore été autorisé.
-          </p>
-          <div className="space-y-1 font-mono text-white/90 pl-1.5 border-l border-amber-500/30">
-            <div>1. Allez sur votre : <a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" rel="noopener noreferrer" className="underline text-blue-400 hover:text-blue-300">Google Cloud Console &gt; Écran de consentement OAuth</a></div>
-            <div>2. Dans l'onglet <span className="text-amber-400 font-bold">"Utilisateurs de test" (Test users)</span>, cliquez sur <span className="text-amber-400 font-bold">"Ajouter des utilisateurs"</span>.</div>
-            <div>3. Ajoutez l'adresse e-mail de votre téléphone (ex: <span className="font-sans font-bold bg-black/30 px-1 rounded">littled971@gmail.com</span>) puis enregistrez.</div>
-          </div>
-        </div>
-        <div className="space-y-3 bg-[#0a0a1a]/70 p-4 rounded-2xl border border-white/5 text-[9.5px] text-[#a0a0cc]">
-          <p className="font-bold text-white text-[10px]">Pour lier vos comptes Google Fit & Google Agenda :</p>
-          <div className="flex gap-2 items-start">
-            <span className="text-[#a0a0cc] font-black">1.</span>
-            <p>Ouvrez l'application directement dans le navigateur Chrome sécurisé de votre mobile :</p>
-          </div>
-          
-          <div className="flex flex-col gap-2 mt-1 mb-2">
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                const bypassUrl = `${window.location.origin}/?source=apk&bypass=true`;
-                const bridge = (window as any).AndroidBridge;
-                if (bridge && typeof bridge.openExternalBrowser === 'function') {
-                  bridge.openExternalBrowser(bypassUrl);
-                } else {
-                  window.open(bypassUrl, '_blank');
-                }
-              }}
-              className="w-full text-center px-4 py-3 bg-gradient-to-r from-blue-500 via-indigo-600 to-violet-600 hover:from-blue-600 hover:via-indigo-700 hover:to-violet-700 active:scale-95 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10 border border-white/10"
-            >
-              🌐 Ouvrir 6S dans Chrome mobile (Pour lier les comptes)
-            </button>
-            <div className="bg-black/60 p-2.5 rounded-xl text-[8.5px] font-mono text-blue-300 flex items-center justify-between gap-2 overflow-hidden border border-blue-500/10">
-              <span className="truncate mr-2">{window.location.origin}/?source=apk&bypass=true</span>
-              <button 
-                onClick={() => {
-                  const bypassUrl = `${window.location.origin}/?source=apk&bypass=true`;
-                  navigator.clipboard.writeText(bypassUrl);
-                  addAlert({
-                    title: 'Lien copié !',
-                    desc: 'Collez ce lien dans Chrome pour finaliser la synchronisation sans repasser par l\'inscription.',
-                    type: 'green',
-                    icon: '📋',
-                    time: 'À l\'instant',
-                    actions: []
-                  });
-                }}
-                className="px-2 py-1 bg-[#7c3aed]/20 hover:bg-[#7c3aed]/40 text-white rounded text-[8px] font-bold shrink-0 transition-all hover:scale-105 active:scale-95"
-              >
-                Copier
-              </button>
-            </div>
-          </div>
-
-          <div className="flex gap-2 items-start mt-2">
-            <span className="text-[#a0a0cc] font-black">2.</span>
-            <p className="leading-snug">Cliquez sur <span className="text-white font-bold">"Lier"</span> pour Google directement dans Chrome.</p>
-          </div>
-          <div className="flex gap-2 items-start">
-            <span className="text-[#a0a0cc] font-black">3.</span>
-            <p className="leading-snug">De retour dans votre APK, vos données (pas, sommeil, agenda) se synchroniseront de manière transparente !</p>
-          </div>
-        </div>
-      </section>
-
       <section className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-[10px] font-bold text-[#6a6a99] uppercase tracking-widest">📱 Applications</h3>
@@ -368,15 +288,6 @@ export const Connections: React.FC = () => {
         </div>
       </section>
 
-      <section className="p-4 rounded-2xl bg-[#7c3aed]/5 border border-[#7c3aed]/20">
-        <h3 className="text-[10px] font-bold text-[#7c3aed] uppercase tracking-widest mb-3 flex items-center gap-2">
-          <Shield size={12} /> Rapport de Compatibilité
-        </h3>
-        <p className="text-[10px] text-[#a0a0cc] leading-relaxed">
-          L'IA 6S surveille en permanence les changements d'API des services tiers. Les connexions marquées <span className="text-emerald-500 font-bold">EASY</span> utilisent des protocoles standardisés (OAuth2, HealthKit) garantissant une stabilité à long terme. Les connexions <span className="text-red-500 font-bold">HARD</span> dépendent de méthodes propriétaires susceptibles de changer.
-        </p>
-      </section>
-
       <section className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-[10px] font-bold text-[#6a6a99] uppercase tracking-widest">🔐 Autorisations</h3>
@@ -400,24 +311,6 @@ export const Connections: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
-      </section>
-      <section className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-4">
-        <h3 className="text-[10px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
-          ⚙️ Configuration Technique (OAuth & API)
-        </h3>
-        <p className="text-[10px] text-[#a0a0cc] leading-relaxed">
-          Pour activer les connexions réelles, configurez vos identifiants dans les paramètres (Secrets) :
-        </p>
-        <div className="space-y-3">
-          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-            <h4 className="text-[9px] font-bold text-white mb-1">Google (Fit, Calendar, Gmail)</h4>
-            <p className="text-[8px] text-[#a0a0cc] mb-2">URL de redirection : <code className="bg-black/50 px-1 rounded text-emerald-500">{window.location.origin}/api/auth/google/callback</code></p>
-          </div>
-          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-            <h4 className="text-[9px] font-bold text-white mb-1">OpenWeatherMap</h4>
-            <p className="text-[8px] text-[#a0a0cc]">Clé requise : <code className="bg-black/50 px-1 rounded text-emerald-500">OPENWEATHER_API_KEY</code></p>
-          </div>
         </div>
       </section>
     </div>
