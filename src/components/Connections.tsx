@@ -246,6 +246,22 @@ export const Connections: React.FC = () => {
         <p className="text-[10.5px] text-[#a0a0cc] leading-relaxed">
           Google bloque l'authentification directe (erreur <code className="text-[#ec4899] font-mono bg-black/40 px-1 rounded text-[9.5px]">disallowed_useragent</code>) au sein des applications Android APK non vérifiées.
         </p>
+
+        {/* Alerte Erreur 403 / Access Denied de Google */}
+        <div className="p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-2xl text-[9.5px] text-amber-300 space-y-1.5 leading-relaxed">
+          <div className="flex items-center gap-1.5 font-bold text-amber-400 text-[10px]">
+            <span>⚠️</span>
+            <span>Résoudre l'erreur Google "Accès bloqué / Erreur 403 : access_denied" :</span>
+          </div>
+          <p>
+            Si l'authentification fonctionne sur votre ordinateur mais affiche cette erreur sur votre smartphone, c'est parce que votre compte Google mobile n'a pas encore été autorisé.
+          </p>
+          <div className="space-y-1 font-mono text-white/90 pl-1.5 border-l border-amber-500/30">
+            <div>1. Allez sur votre : <a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" rel="noopener noreferrer" className="underline text-blue-400 hover:text-blue-300">Google Cloud Console &gt; Écran de consentement OAuth</a></div>
+            <div>2. Dans l'onglet <span className="text-amber-400 font-bold">"Utilisateurs de test" (Test users)</span>, cliquez sur <span className="text-amber-400 font-bold">"Ajouter des utilisateurs"</span>.</div>
+            <div>3. Ajoutez l'adresse e-mail de votre téléphone (ex: <span className="font-sans font-bold bg-black/30 px-1 rounded">littled971@gmail.com</span>) puis enregistrez.</div>
+          </div>
+        </div>
         <div className="space-y-3 bg-[#0a0a1a]/70 p-4 rounded-2xl border border-white/5 text-[9.5px] text-[#a0a0cc]">
           <p className="font-bold text-white text-[10px]">Pour lier vos comptes Google Fit & Google Agenda :</p>
           <div className="flex gap-2 items-start">

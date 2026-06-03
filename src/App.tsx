@@ -16,6 +16,8 @@ import { Statistics } from './components/Statistics';
 import { BottomNav } from './components/BottomNav';
 import { TopBar } from './components/TopBar';
 import { LoginChoice } from './components/LoginChoice';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { TermsOfService } from './components/TermsOfService';
 import { AnimatePresence, motion } from 'motion/react';
 
 import { SystemStatus } from './components/SystemStatus';
@@ -92,6 +94,13 @@ const AppContent: React.FC = () => {
 
   if (showSplash) return <SplashScreen />;
   if (isLoading) return <SplashScreen />;
+
+  // Google OAuth Consent Screen requirements
+  const isPrivacyPage = window.location.pathname === '/privacy' || window.location.search.includes('page=privacy');
+  const isTermsPage = window.location.pathname === '/terms' || window.location.search.includes('page=terms');
+
+  if (isPrivacyPage) return <PrivacyPolicy />;
+  if (isTermsPage) return <TermsOfService />;
 
   const handleChoice = async (choice: 'local' | 'google' | 'demo') => {
     setHasChosenLogin(true);
