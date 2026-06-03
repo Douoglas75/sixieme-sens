@@ -29,7 +29,14 @@ const AppContent: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [hasChosenLogin, setHasChosenLogin] = useState(() => localStorage.getItem('6s_login_choice') === 'true');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [activePage, setActivePage] = useState<'home' | 'shield' | 'predictions' | 'social' | 'settings' | 'connections' | 'ghost' | 'statistics'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'shield' | 'predictions' | 'social' | 'settings' | 'connections' | 'ghost' | 'statistics'>(() => {
+    return (localStorage.getItem('6s_active_page') as any) || 'home';
+  });
+
+  // Track and persist activePage state across webpage reloads/redirects
+  useEffect(() => {
+    localStorage.setItem('6s_active_page', activePage);
+  }, [activePage]);
 
   // Initialize Background Tasks
   useBackgroundTasks();

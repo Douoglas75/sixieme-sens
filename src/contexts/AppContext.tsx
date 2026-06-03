@@ -549,16 +549,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       if (authUrl) {
-        const width = 600;
-        const height = 700;
-        const left = window.screenX + (window.outerWidth - width) / 2;
-        const top = window.screenY + (window.outerHeight - height) / 2;
-        
-        window.open(
-          authUrl,
-          'oauth_popup',
-          `width=${width},height=${height},left=${left},top=${top}`
-        );
+        // Detect mobile user agent or narrow screen (smartphone / tablet)
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+        if (isMobile) {
+          // On mobile, redirect current tab directly. This completely bypasses popup blockers!
+          window.location.href = authUrl;
+        } else {
+          // On computer/Mac/desktop, open a neat centered pop-up
+          const width = 600;
+          const height = 700;
+          const left = window.screenX + (window.outerWidth - width) / 2;
+          const top = window.screenY + (window.outerHeight - height) / 2;
+          
+          try {
+            const popup = window.open(
+              authUrl,
+              'oauth_popup',
+              `width=${width},height=${height},left=${left},top=${top}`
+            );
+            
+            // Pop-up blocker fallback: if popup was blocked/undefined, redirect rather than doing nothing
+            if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+              console.log('[linkApp] Popup blocked on desktop, redirecting direct tab...');
+              window.location.href = authUrl;
+            }
+          } catch (e) {
+            console.warn('[linkApp] Exception opening popup, falling back to direct redirect', e);
+            window.location.href = authUrl;
+          }
+        }
         return;
       }
 
