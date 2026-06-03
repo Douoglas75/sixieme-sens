@@ -1,6 +1,6 @@
 {
-  "name": "6S Intuition Native",
-  "description": "Application d'assistance prédictive avec intégration Bluetooth native Android pour un monitoring biométrique en temps réel sans limitations de navigateur.",
+  "name": "Sixèmes sens (Sixième Sens)",
+  "description": "Application d'assistance prédictive et d'automatisation Ghost-Admin avec synchronisation des pas, sommeil via Google Fit, et planification d'événements via Google Agenda.",
   "requestFramePermissions": [
     "camera",
     "microphone",
