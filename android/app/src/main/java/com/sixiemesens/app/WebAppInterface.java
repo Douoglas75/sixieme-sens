@@ -55,4 +55,20 @@ public class WebAppInterface {
     public void requestBluetoothPermissions() {
         mainActivity.requestBluetoothPermissions();
     }
+
+    @JavascriptInterface
+    public void openExternalBrowser(final String url) {
+        mainActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url));
+                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                    mainActivity.startActivity(intent);
+                } catch (Exception e) {
+                    android.util.Log.e("WebAppInterface", "Error opening browser", e);
+                }
+            }
+        });
+    }
 }

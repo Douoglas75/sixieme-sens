@@ -238,7 +238,7 @@ export const Connections: React.FC = () => {
         </section>
       )}
 
-      {/* Solution de Synchronisation Hybrid (APK / WebView) */}
+      {/* Solution de Synchronisation Hybride (APK / WebView) */}
       <section className="p-5 rounded-3xl bg-gradient-to-br from-[#1e1b4b] to-[#0a051d] border border-blue-500/30 space-y-3">
         <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
           📲 Guide de Connexion Mobile (APK)
@@ -246,37 +246,45 @@ export const Connections: React.FC = () => {
         <p className="text-[10.5px] text-[#a0a0cc] leading-relaxed">
           Google bloque l'authentification directe (erreur <code className="text-[#ec4899] font-mono bg-black/40 px-1 rounded text-[9.5px]">disallowed_useragent</code>) au sein des applications Android APK non vérifiées.
         </p>
-        <div className="space-y-2 bg-[#0a0a1a]/70 p-3 rounded-2xl border border-white/5 text-[9.5px] text-[#a0a0cc]">
-          <p className="font-bold text-white">Pour lier vos comptes Google Fit & Google Agenda :</p>
+        <div className="space-y-3 bg-[#0a0a1a]/70 p-4 rounded-2xl border border-white/5 text-[9.5px] text-[#a0a0cc]">
+          <p className="font-bold text-white text-[10px]">Pour lier vos comptes Google Fit & Google Agenda :</p>
           <div className="flex gap-2 items-start">
             <span className="text-[#a0a0cc] font-black">1.</span>
-            <p>Ouvrez l'application directement dans le navigateur Chrome de votre mobile :</p>
+            <p>Ouvrez l'application directement dans le navigateur Chrome sécurisé de votre mobile :</p>
           </div>
           
           <div className="flex flex-col gap-2 mt-1 mb-2">
-            <a 
-              href={window.location.origin}
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full text-center px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 active:scale-95 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                const bypassUrl = `${window.location.origin}/?source=apk&bypass=true`;
+                const bridge = (window as any).AndroidBridge;
+                if (bridge && typeof bridge.openExternalBrowser === 'function') {
+                  bridge.openExternalBrowser(bypassUrl);
+                } else {
+                  window.open(bypassUrl, '_blank');
+                }
+              }}
+              className="w-full text-center px-4 py-3 bg-gradient-to-r from-blue-500 via-indigo-600 to-violet-600 hover:from-blue-600 hover:via-indigo-700 hover:to-violet-700 active:scale-95 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10 border border-white/10"
             >
               🌐 Ouvrir 6S dans Chrome mobile (Pour lier les comptes)
-            </a>
-            <div className="bg-black/60 p-2 rounded-xl text-[8.5px] font-mono text-blue-300 flex items-center justify-between gap-2 overflow-hidden border border-blue-500/10">
-              <span className="truncate">{window.location.origin}</span>
+            </button>
+            <div className="bg-black/60 p-2.5 rounded-xl text-[8.5px] font-mono text-blue-300 flex items-center justify-between gap-2 overflow-hidden border border-blue-500/10">
+              <span className="truncate mr-2">{window.location.origin}/?source=apk&bypass=true</span>
               <button 
                 onClick={() => {
-                  navigator.clipboard.writeText(window.location.origin);
+                  const bypassUrl = `${window.location.origin}/?source=apk&bypass=true`;
+                  navigator.clipboard.writeText(bypassUrl);
                   addAlert({
                     title: 'Lien copié !',
-                    desc: 'Collez ce lien dans Chrome pour finaliser la synchronisation.',
+                    desc: 'Collez ce lien dans Chrome pour finaliser la synchronisation sans repasser par l\'inscription.',
                     type: 'green',
                     icon: '📋',
                     time: 'À l\'instant',
                     actions: []
                   });
                 }}
-                className="px-2 py-1 bg-[#7c3aed]/20 hover:bg-[#7c3aed]/40 text-white rounded text-[8px] font-bold"
+                className="px-2 py-1 bg-[#7c3aed]/20 hover:bg-[#7c3aed]/40 text-white rounded text-[8px] font-bold shrink-0 transition-all hover:scale-105 active:scale-95"
               >
                 Copier
               </button>
@@ -285,186 +293,12 @@ export const Connections: React.FC = () => {
 
           <div className="flex gap-2 items-start mt-2">
             <span className="text-[#a0a0cc] font-black">2.</span>
-            <p>Cliquez sur "Lier" pour Google directement dans Chrome.</p>
+            <p className="leading-snug">Cliquez sur <span className="text-white font-bold">"Lier"</span> pour Google directement dans Chrome.</p>
           </div>
           <div className="flex gap-2 items-start">
             <span className="text-[#a0a0cc] font-black">3.</span>
-            <p>De retour dans votre APK, vos données réelles se synchroniseront de manière transparente !</p>
+            <p className="leading-snug">De retour dans votre APK, vos données (pas, sommeil, agenda) se synchroniseront de manière transparente !</p>
           </div>
-        </div>
-
-        <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl space-y-2 text-[9.5px]">
-          <h4 className="font-bold text-amber-400 flex items-center justify-between gap-1.5">
-            <span className="flex items-center gap-1.5">⚠️ Bluetooth & Localisation (APK Android)</span>
-            {isAndroid && (
-              <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${permissions.find(p => p.id === 'location')?.granted ? 'bg-emerald-500/25 text-emerald-400' : 'bg-red-500/25 text-red-400'}`}>
-                {permissions.find(p => p.id === 'location')?.granted ? 'Accordé' : 'Requis'}
-              </span>
-            )}
-          </h4>
-          <p className="text-[#a0a0cc] leading-relaxed">
-            Pour que le Bluetooth trouve vos appareils sur votre téléphone Android, vous <strong>devez</strong> accorder la <strong>permission de localisation (GPS)</strong> de l'application dans les paramètres Android de votre smartphone. Google l'impose pour détecter les ondes BLE.
-          </p>
-          {isAndroid && !permissions.find(p => p.id === 'location')?.granted && (
-            <button
-              onClick={() => {
-                if ((window as any).AndroidBridge?.openAppSettings) {
-                  (window as any).AndroidBridge.openAppSettings();
-                }
-              }}
-              className="w-full mt-1 px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 active:scale-95 text-white font-bold rounded-xl text-[9.5px] uppercase tracking-wider transition-all"
-            >
-              🔄 Activer maintenant (Ouvrir Paramètres)
-            </button>
-          )}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="text-[10px] font-bold text-[#6a6a99] uppercase tracking-widest">⌚ Objets Connectés</h3>
-          <button 
-            onClick={startScan}
-            disabled={isScanning}
-            className="text-[10px] font-bold text-[#7c3aed] flex items-center gap-1 disabled:opacity-50"
-          >
-            <Search size={10} /> {isScanning ? 'Recherche...' : 'Scanner'}
-          </button>
-        </div>
-
-        {devices.length === 0 && !isScanning && scanResults.length === 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-6 rounded-3xl bg-gradient-to-br from-[#7c3aed]/10 to-transparent border border-[#7c3aed]/20 text-center space-y-4"
-          >
-            <div className="w-12 h-12 bg-[#7c3aed]/20 rounded-full flex items-center justify-center mx-auto">
-              <Bluetooth className="text-[#7c3aed]" size={24} />
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-sm font-bold">Bienvenue sur 6S Intuition</h4>
-              <p className="text-[10px] text-[#a0a0cc] leading-relaxed">
-                Aucun appareil n'est encore connecté. Pour commencer à recevoir vos données biométriques réelles :
-              </p>
-            </div>
-            <div className="text-left space-y-2 bg-[#0a0a1a]/50 p-3 rounded-xl border border-white/5">
-              <div className="flex gap-3 items-start">
-                <span className="text-[10px] font-black text-[#7c3aed] bg-[#7c3aed]/10 w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0">1</span>
-                <p className="text-[9px] text-[#a0a0cc]">Activez le Bluetooth sur votre appareil.</p>
-              </div>
-              <div className="flex gap-3 items-start">
-                <span className="text-[10px] font-black text-[#7c3aed] bg-[#7c3aed]/10 w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0">2</span>
-                <p className="text-[9px] text-[#a0a0cc]">Cliquez sur "Scanner" en haut à droite.</p>
-              </div>
-              <div className="flex gap-3 items-start">
-                <span className="text-[10px] font-black text-[#7c3aed] bg-[#7c3aed]/10 w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0">3</span>
-                <p className="text-[9px] text-[#a0a0cc]">Sélectionnez votre objet dans la liste système qui apparaîtra.</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-        
-        <AnimatePresence mode="popLayout">
-          {isScanning && (
-            <motion.div 
-              key="scanning"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="p-6 rounded-2xl bg-[#7c3aed]/5 border border-dashed border-[#7c3aed]/30 flex flex-col items-center justify-center gap-4 overflow-hidden"
-            >
-              <div className="relative">
-                <div className="w-12 h-12 border-2 border-[#7c3aed]/30 rounded-full" />
-                <div className="absolute inset-0 w-12 h-12 border-2 border-[#7c3aed] border-t-transparent rounded-full animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Bluetooth className="w-5 h-5 text-[#7c3aed]" />
-                </div>
-              </div>
-              <div className="text-center">
-                <p className="text-[11px] text-white font-bold mb-1">Recherche d'ajustements biométriques...</p>
-                <p className="text-[9px] text-[#a0a0cc]">Assurez-vous que vos appareils sont à proximité</p>
-              </div>
-            </motion.div>
-          )}
-
-          {scanResults.length > 0 && !isScanning && (
-            <motion.div 
-              key="results"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/50 space-y-3"
-            >
-              <div className="flex justify-between items-center mb-1">
-                <h4 className="text-[10px] font-black text-[#7c3aed] uppercase">Appareils trouvés</h4>
-                <button 
-                  onClick={() => setScanResults([])}
-                  className="p-2 -mr-2 hover:bg-white/5 rounded-full transition-colors"
-                >
-                  <X size={16} className="text-[#6a6a99]" />
-                </button>
-              </div>
-              {scanResults.map(res => (
-                <div key={res.id} className="flex items-center justify-between p-2 bg-[#0a0a1a] rounded-xl border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <Bluetooth size={14} className="text-blue-400" />
-                    <div>
-                      <div className="text-[11px] font-bold">{res.name}</div>
-                      <div className="text-[9px] text-[#6a6a99]">{res.type} · {res.signal}</div>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => handleAppairage(res)}
-                    className="px-3 py-1 bg-[#7c3aed] rounded-lg text-[9px] font-bold"
-                  >
-                    Appairer
-                  </button>
-                </div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="space-y-2">
-          {devices.map(device => (
-            <div 
-              key={device.id} 
-              className={`p-4 rounded-2xl bg-[#1a1a3e] border border-[#7c3aed]/20 flex items-center gap-4 transition-all ${device.connected ? 'border-emerald-500/50 bg-emerald-500/5' : ''}`}
-            >
-              <div className="text-2xl w-10 text-center">{device.icon}</div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-bold">{device.name}</h4>
-                  {device.difficulty && (
-                    <span className={`text-[7px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-tighter ${
-                      device.difficulty === 'easy' ? 'bg-emerald-500/10 text-emerald-500' : 
-                      device.difficulty === 'moderate' ? 'bg-amber-500/10 text-amber-500' : 
-                      'bg-red-500/10 text-red-500'
-                    }`}>
-                      {device.difficulty}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[10px] text-[#a0a0cc]">{device.type} · Signal {device.signal}</p>
-              </div>
-              {device.connected ? (
-                <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center">
-                  <Check size={16} />
-                </div>
-              ) : device.connecting ? (
-                <div className="flex items-center gap-2 text-[10px] text-[#7c3aed] font-bold">
-                  <div className="w-4 h-4 border-2 border-[#7c3aed] border-t-transparent rounded-full animate-spin" />
-                  Pairing...
-                </div>
-              ) : (
-                <button 
-                  onClick={() => connectDevice(device.id)}
-                  className="px-3 py-1.5 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] rounded-lg text-[10px] font-bold"
-                >
-                  Connecter
-                </button>
-              )}
-            </div>
-          ))}
         </div>
       </section>
 

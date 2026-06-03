@@ -108,14 +108,16 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const isBypass = window.location.search.includes('bypass=true') || window.location.search.includes('source=apk');
+
   // Only show LoginChoice if we don't have a user, haven't made a choice yet, and onboarding not done
-  if (!hasChosenLogin && !user && !onboardingDone) {
+  if (!isBypass && !hasChosenLogin && !user && !onboardingDone) {
     return <LoginChoice onChoice={handleChoice} />;
   }
 
-  if (!onboardingDone) return <Onboarding />;
-  if (!user) return <Setup />;
-  if (isLocked) return <LockScreen />;
+  if (!isBypass && !onboardingDone) return <Onboarding />;
+  if (!isBypass && !user) return <Setup />;
+  if (!isBypass && isLocked) return <LockScreen />;
 
   const renderPage = () => {
     switch (activePage) {

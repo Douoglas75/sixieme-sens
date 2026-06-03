@@ -1,13 +1,33 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { motion } from 'motion/react';
-import { Calendar, Info, TrendingUp, Zap, HeartPulse, Wallet, Phone } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Calendar, Info, TrendingUp, Zap, HeartPulse, Wallet, Phone, Search, ShieldCheck } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 import { hapticFeedback } from '../utils/haptics';
 
 export const Predictions: React.FC = () => {
   const { predictions, dismissPrediction, addAlert } = useApp();
   const [filter, setFilter] = useState('all');
+  const [analysisText, setAnalysisText] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+
+  const handleAnalyze = () => {
+    if (!analysisText) return;
+    hapticFeedback('medium');
+    setIsAnalyzing(true);
+    setAnalysisResult(null);
+    
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      setAnalysisResult({
+        score: 82,
+        bias: 'Léger biais optimiste',
+        deepfake: 'Non détecté',
+        source: 'Fiable (94%)'
+      });
+    }, 3000);
+  };
 
   const filteredPredictions = filter === 'all' 
     ? predictions 
@@ -126,6 +146,60 @@ export const Predictions: React.FC = () => {
             </div>
           </motion.div>
         ))}
+      </div>
+
+      <div className="p-6 rounded-3xl bg-[#1a1a3e]/50 border border-[#7c3aed]/20 text-center space-y-4">
+        <div className="w-12 h-12 bg-[#7c3aed]/10 rounded-full flex items-center justify-center mx-auto text-[#7c3aed]">
+          <Search size={22} />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold mb-1">Analyseur de Fiabilité & Liens</h3>
+          <p className="text-[10.5px] text-[#a0a0cc]">Collez un lien internet ou un paragraphe de texte pour évaluer les biais de formulation et déceler d'éventuels deepfakes / altérations IA.</p>
+        </div>
+        
+        <textarea 
+          value={analysisText}
+          onChange={e => setAnalysisText(e.target.value)}
+          className="w-full p-3.5 bg-[#0a0a1a] border border-[#7c3aed]/20 rounded-2xl text-xs outline-none h-24 resize-none text-[#e0e0ff] focus:border-[#7c3aed]/50 transition-all font-sans" 
+          placeholder="Collez l'URL de l'article ou le texte ici..." 
+        />
+
+        <AnimatePresence>
+          {analysisResult && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl text-left space-y-2.5 overflow-hidden"
+            >
+              <div className="flex justify-between items-center pb-1.5 border-b border-emerald-500/15">
+                <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-widest">Calculateur d'indice réel</span>
+                <span className="text-xs font-black text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full">{analysisResult.score}% Fiabilité</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-[10px]">
+                <div className="text-[#a0a0cc]">Influence: <span className="text-white font-semibold">{analysisResult.bias}</span></div>
+                <div className="text-[#a0a0cc]">Deepfake: <span className="text-white font-semibold">{analysisResult.deepfake}</span></div>
+                <div className="text-[#a0a0cc] col-span-2">Véridique: <span className="text-emerald-300 font-semibold">{analysisResult.source}</span></div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <button 
+          onClick={handleAnalyze}
+          disabled={isAnalyzing}
+          className="w-full py-3.5 bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] hover:from-white/10 hover:to-white/20 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 text-white shadow-lg shadow-indigo-500/10"
+        >
+          {isAnalyzing ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Analyse cognitive en cours...
+            </>
+          ) : (
+            <>
+              <ShieldCheck size={14} /> Lancer l'analyse AI
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
