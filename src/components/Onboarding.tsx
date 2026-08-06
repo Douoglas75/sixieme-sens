@@ -4,7 +4,7 @@ import { useSecurity } from '../contexts/SecurityContext';
 
 const slides = [
   { icon: '🧠', title: 'Développez votre Sixième Sens', desc: "L'IA qui anticipe vos problèmes avant qu'ils n'arrivent." },
-  { icon: '⚡', title: '3 Alertes Prédictives / Jour', desc: 'Santé, finance, relations... prédictions personnalisées.' },
+  { icon: '⚡', title: '3 Alertes Prédictives / Jour', desc: 'Santé, relations... prédictions personnalisées.' },
   { icon: '🛡️', title: 'Bouclier Cognitif', desc: 'Protégez votre attention, détectez les deepfakes.' },
   { icon: '👥', title: 'Radar Social', desc: 'Ne perdez plus le contact avec vos 5 relations clés.' },
   { icon: '🤖', title: 'Ghost-Admin', desc: '2 tâches administratives automatisées par mois.' }

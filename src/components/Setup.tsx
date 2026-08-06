@@ -29,7 +29,7 @@ export const Setup: React.FC = () => {
       name: name || 'Utilisateur',
       sleep,
       activity,
-      finance,
+      finance: 'ok',
       contacts: filteredContacts.length > 0 ? filteredContacts : [
         { name: 'Maman', relation: 'Famille', lastContact: 5 },
         { name: 'Thomas', relation: 'Ami', lastContact: 12 }
@@ -89,21 +89,6 @@ export const Setup: React.FC = () => {
             <option value="medium">Modéré</option>
             <option value="high">Actif</option>
             <option value="athlete">Sportif</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 text-sm font-semibold text-[#a0a0cc]">
-            <Euro size={16} /> Situation financière
-          </label>
-          <select 
-            value={finance}
-            onChange={e => setFinance(e.target.value as any)}
-            className="w-full p-4 bg-[#1a1a3e] border border-[#7c3aed]/20 rounded-xl outline-none focus:border-[#7c3aed]"
-          >
-            <option value="tight">Serrée</option>
-            <option value="ok">Correcte</option>
-            <option value="comfortable">Confortable</option>
           </select>
         </div>
 

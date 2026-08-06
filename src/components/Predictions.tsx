@@ -29,21 +29,19 @@ export const Predictions: React.FC = () => {
     }, 3000);
   };
 
-  const filteredPredictions = filter === 'all' 
+  const filteredPredictions = (filter === 'all' 
     ? predictions 
-    : predictions.filter(p => p.type === filter);
+    : predictions.filter(p => p.type === filter)).filter(p => p.type !== 'finance');
 
   const tabs = [
     { id: 'all', label: 'Toutes' },
     { id: 'health', label: '🏥 Santé' },
-    { id: 'finance', label: '💰 Finance' },
     { id: 'social', label: '👥 Social' },
     { id: 'cognitive', label: '🧠 Cognitif' }
   ];
 
   const clr: any = {
     health: '#10b981',
-    finance: '#f59e0b',
     social: '#3b82f6',
     cognitive: '#7c3aed'
   };
@@ -77,7 +75,6 @@ export const Predictions: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
                 p.type === 'health' ? 'bg-emerald-500/10 text-emerald-500' : 
-                p.type === 'finance' ? 'bg-amber-500/10 text-amber-500' : 
                 p.type === 'social' ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500'
               }`}>
                 {p.cat}

@@ -74,16 +74,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
             { id: 'h', icon: '🏥', label: 'Santé', color: 'text-emerald-400' },
-            { id: 'f', icon: '💰', label: 'Finance', color: 'text-amber-400' },
             { id: 's', icon: '👥', label: 'Social', color: 'text-blue-400' },
             { id: 'c', icon: '🧠', label: 'Cognitif', color: 'text-purple-400' },
             { id: 'k', icon: '💼', label: 'Carrière', color: 'text-cyan-400' },
             { id: 'a', icon: '📋', label: 'Admin', color: 'text-pink-400' }
-          ].map(item => (
-            <div key={item.id} className="bg-[#7c3aed]/5 p-3 rounded-xl text-center border border-white/5">
+          ].map((item, idx) => (
+            <div 
+              key={item.id} 
+              className={`bg-[#7c3aed]/5 p-3 rounded-xl text-center border border-white/5 ${
+                idx === 4 ? 'col-span-2 md:col-span-1' : ''
+              }`}
+            >
               <div className="text-base mb-1">{item.icon}</div>
               <div className="text-[8px] text-[#6a6a99] uppercase tracking-wider mb-1">{item.label}</div>
               <div className={`text-sm font-bold ${item.color}`}>{scores[item.id as keyof ScoreData]}</div>

@@ -9,7 +9,7 @@ interface TopBarProps {
 }
 
 export const TopBar: React.FC<TopBarProps> = ({ onSettings }) => {
-  const { alerts } = useApp();
+  const { alerts, user } = useApp();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   const handleNotif = () => {
@@ -52,9 +52,9 @@ export const TopBar: React.FC<TopBarProps> = ({ onSettings }) => {
           </button>
           <button 
             onClick={handleSettings}
-            className="w-9 h-9 rounded-full bg-gradient-to-br from-[#06b6d4] to-[#7c3aed] border-2 border-[#7c3aed]/50 flex items-center justify-center text-xs font-bold active:scale-90 transition-all"
+            className="w-9 h-9 rounded-full bg-gradient-to-br from-[#06b6d4] to-[#7c3aed] border-2 border-[#7c3aed]/50 flex items-center justify-center text-xs font-bold active:scale-90 transition-all text-white"
           >
-            S
+            {user?.name ? user.name[0].toUpperCase() : 'S'}
           </button>
         </div>
       </header>

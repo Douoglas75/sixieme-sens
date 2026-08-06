@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { useSecurity } from '../contexts/SecurityContext';
-import { User as UserIcon, Watch, Bell, Clock, Brain, Lock, ShieldCheck, Download, Trash2, Crown, ChevronRight, Cloud, X, Check, AlertTriangle } from 'lucide-react';
+import { User as UserIcon, Watch, Bell, Clock, Brain, Lock, ShieldCheck, Download, Trash2, Crown, ChevronRight, Cloud, X, Check, AlertTriangle, FileText, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { hapticFeedback } from '../utils/haptics';
 
@@ -232,6 +232,36 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
           </div>
         </section>
 
+        <section className="space-y-2">
+          <h3 className="text-[10px] font-bold text-[#6a6a99] uppercase tracking-widest px-1">Légal & Confidentialité</h3>
+          <div className="space-y-1.5">
+            <a 
+              href="/privacy" 
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = '/privacy';
+              }}
+              className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl cursor-pointer hover:bg-white/5 transition-all text-purple-300"
+            >
+              <FileText size={18} />
+              <span className="flex-1 text-sm">Charte de Confidentialité</span>
+              <ExternalLink size={14} className="text-[#6a6a99]" />
+            </a>
+            <a 
+              href="/terms" 
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = '/terms';
+              }}
+              className="flex items-center gap-3 p-4 bg-[#1a1a3e] rounded-xl cursor-pointer hover:bg-white/5 transition-all text-blue-300"
+            >
+              <FileText size={18} />
+              <span className="flex-1 text-sm">Conditions Générales d'Utilisation</span>
+              <ExternalLink size={14} className="text-[#6a6a99]" />
+            </a>
+          </div>
+        </section>
+
         <section className="pt-4">
           <div className="p-5 rounded-2xl bg-gradient-to-br from-[#7c3aed]/20 to-[#3b82f6]/10 border border-[#7c3aed]/30 text-center">
             <Crown size={32} className="mx-auto text-amber-400 mb-3" />
@@ -337,18 +367,6 @@ export const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
                     <option value="medium">Moyenne</option>
                     <option value="high">Élevée</option>
                     <option value="athlete">Athlète</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] text-[#6a6a99] uppercase font-bold mb-1.5 block">Finance</label>
-                  <select 
-                    value={editUser.finance}
-                    onChange={e => setEditUser({...editUser, finance: e.target.value as any})}
-                    className="w-full bg-[#0a0a1a] border border-[#7c3aed]/20 rounded-xl p-3 text-sm outline-none focus:border-[#7c3aed]"
-                  >
-                    <option value="tight">Serrée</option>
-                    <option value="ok">Correcte</option>
-                    <option value="comfortable">Confortable</option>
                   </select>
                 </div>
               </div>

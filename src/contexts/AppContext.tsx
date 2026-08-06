@@ -283,7 +283,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     const healthBase = userData.sleep >= 7 ? 8.5 : 6.0;
     const activityBonus = userData.activity === 'athlete' ? 1.5 : userData.activity === 'high' ? 1.0 : 0.5;
-    const financeBase = userData.finance === 'comfortable' ? 9.0 : userData.finance === 'ok' ? 7.0 : 5.0;
     const socialBase = userData.contacts.length > 10 ? 8.5 : userData.contacts.length > 5 ? 7.0 : 5.0;
     
     const cognitiveBase = 7.5;
@@ -292,7 +291,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const mockScores: ScoreData = {
       h: ((parseFloat(analyzedScores.h) + healthBase + activityBonus) / 2).toFixed(1),
-      f: ((parseFloat(analyzedScores.f) + financeBase) / 2).toFixed(1),
+      f: '0.0', // Finance category removed on demand
       s: socialBase.toFixed(1),
       c: cognitiveBase.toFixed(1),
       k: careerBase.toFixed(1),
@@ -300,10 +299,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       t: '0.0'
     };
 
+    const activeScoreKeys: (keyof ScoreData)[] = ['h', 's', 'c', 'k', 'a'];
     const total = (
-      Object.values(mockScores)
-        .filter(v => !isNaN(parseFloat(v)))
-        .reduce((acc, v) => acc + parseFloat(v), 0) / 6
+      activeScoreKeys
+        .map(key => parseFloat(mockScores[key]))
+        .reduce((acc, val) => acc + val, 0) / 5
     ).toFixed(1);
     
     mockScores.t = total;
@@ -497,26 +497,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const app = apps.find(a => a.id === id);
     if (!app) return;
 
-    // Set linking state for visual feed-back
+    // Set linking state for clean visual feedback
     setApps(prev => prev.map(a => a.id === id ? { ...a, linking: true } : a));
 
     try {
-      let authUrl = '';
-      if (id.startsWith('google-')) {
-        const res = await fetch('/api/auth/google/url');
-        if (res.ok) {
-          const data = await res.json();
-          authUrl = data.url;
-        }
-      } else if (id === 'spotify') {
-        const res = await fetch('/api/auth/spotify/url');
-        if (res.ok) {
-          const data = await res.json();
-          authUrl = data.url;
-        }
-      } else if (id === 'weather') {
-        // Simple delay for professional visual loading feel
+      if (id === 'weather') {
         await new Promise(resolve => setTimeout(resolve, 800));
+        setApps(prev => prev.map(a => a.id === 'weather' ? { ...a, linked: true, linking: false } : a));
         addAlert({
           title: 'Configuration Météo active',
           desc: 'L\'intuition environnementale est en cours de synchronisation via OpenWeatherMap.',
@@ -525,67 +512,69 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           time: 'À l\'instant',
           actions: []
         });
-        setApps(prev => prev.map(a => a.id === 'weather' ? { ...a, linked: true, linking: false } : a));
         return;
       }
 
-      if (authUrl) {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+      let authUrl = '';
+      if (id.startsWith('google-')) {
+        const res = await fetch('/api/auth/google/url?userId=default_user');
+        if (res.ok) {
+          const data = await res.json();
+          authUrl = data.url;
+        }
+      } else if (id === 'spotify') {
+        const res = await fetch('/api/auth/spotify/url?userId=default_user');
+        if (res.ok) {
+          const data = await res.json();
+          authUrl = data.url;
+        }
+      }
 
-        if (isMobile) {
-          window.location.href = authUrl;
-        } else {
-          const width = 600;
-          const height = 700;
-          const left = window.screenX + (window.outerWidth - width) / 2;
-          const top = window.screenY + (window.outerHeight - height) / 2;
+      if (!authUrl) {
+        throw new Error("Impossible de récupérer l'URL d'authentification.");
+      }
+
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+      if (isMobile) {
+        window.location.href = authUrl;
+      } else {
+        const width = 600;
+        const height = 700;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+        
+        try {
+          const popup = window.open(
+            authUrl,
+            'oauth_popup',
+            `width=${width},height=${height},left=${left},top=${top}`
+          );
           
-          try {
-            const popup = window.open(
-              authUrl,
-              'oauth_popup',
-              `width=${width},height=${height},left=${left},top=${top}`
-            );
-            
-            if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-              window.location.href = authUrl;
-            }
-          } catch (e) {
+          if (!popup || popup.closed || typeof popup.closed === 'undefined') {
             window.location.href = authUrl;
           }
+        } catch (e) {
+          window.location.href = authUrl;
         }
-        
-        // Keep linking true so they see a spinner, but auto-clean after a while
-        setTimeout(() => {
-          setApps(prev => prev.map(a => a.id === id ? { ...a, linking: false } : a));
-        }, 8000);
-        return;
       }
-
-      // If we fall here (no authUrl due to missing config, API offline, or local mock requested),
-      // we gracefully activate/link the app instantly for a smooth, offline-friendly high-fidelity demonstration.
-      throw new Error("Activation locale directe requise");
+      
+      // Auto-clear linking state after timeout
+      setTimeout(() => {
+        setApps(prev => prev.map(a => a.id === id ? { ...a, linking: false } : a));
+      }, 8000);
 
     } catch (error) {
-      console.log('Utilisation de l\'activation locale sécurisée:', error);
-      
-      // Highly professional simulated transition with brief loader
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setApps(prev => prev.map(a => a.id === id ? { ...a, linked: true, linking: false } : a));
-      
+      console.error('Real OAuth connection error:', error);
+      setApps(prev => prev.map(a => a.id === id ? { ...a, linking: false } : a));
       addAlert({
-        title: `Connexion active : ${app.name}`,
-        desc: `Le protocole sécurisé local a synchronisé ${app.name} à l'instant.`,
-        type: 'green',
-        icon: '✅',
+        title: 'Erreur de Connexion',
+        desc: `Impossible de démarrer la connexion avec ${app.name}.`,
+        type: 'red',
+        icon: '⚠️',
         time: 'À l\'instant',
         actions: []
       });
-
-      if (user) {
-        calculateRealScores({ ...user });
-      }
     }
   };
 
