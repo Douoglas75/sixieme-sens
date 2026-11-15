@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Footprints, CloudSun, X } from 'lucide-react';
 import { DOMAINS, Scores, Tab, useApp, useApps, latest, average, insights, isoDay } from '../store';
 import { Hexagon, PANEL, Button, Empty } from '../ui';
+import { shareScore } from '../share';
 
 function CheckInSheet({ onClose }: { onClose: () => void }) {
   const { state, update } = useApp();
@@ -42,6 +43,7 @@ export default function Home({ goto }: { goto: (t: Tab) => void }) {
   const [steps, setSteps] = useState<number | null>(null);
   const [wx, setWx] = useState<{ t: number; d: string; city: string } | null>(null);
   const [wxMsg, setWxMsg] = useState('');
+  const [shareMsg, setShareMsg] = useState('');
 
   const last = latest(state);
   const done = last && last.date === isoDay();
@@ -112,7 +114,11 @@ export default function Home({ goto }: { goto: (t: Tab) => void }) {
               <p className="text-sm text-muted">Ton score de vie{done ? " aujourd'hui" : ` au ${new Date(last.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`}</p>
             </>
           ) : <p className="text-sm text-muted">Ton hexagone se dessine après ton premier check-in.</p>}
-          <div className="mt-4"><Button onClick={() => setSheet(true)}>{done ? 'Modifier mon check-in' : 'Faire mon check-in'}</Button></div>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Button onClick={() => setSheet(true)}>{done ? 'Modifier mon check-in' : 'Faire mon check-in'}</Button>
+            {last && <Button kind="ghost" onClick={async () => { const r = await shareScore(last.scores); setShareMsg(r === 'downloaded' ? 'Image enregistrée sur ton appareil.' : ''); }}>Partager mon score</Button>}
+          </div>
+          {shareMsg && <p role="status" className="mt-2 text-xs text-muted">{shareMsg}</p>}
         </div>
         {last && (
           <ul className="mt-5 space-y-2">
