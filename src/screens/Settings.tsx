@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Download, Trash2, Check } from 'lucide-react';
 import { useApp, useApps, connectGoogle, demoState } from '../store';
 import { Title, PANEL, Button } from '../ui';
+import AccountForm from './AccountForm';
 
 export default function Settings() {
-  const { state, update, reset } = useApp();
+  const { state, update, reset, account, sync, logout, wipeAll } = useApp();
+  const [showAcc, setShowAcc] = useState(false);
   const { apps, refresh } = useApps();
   const [name, setName] = useState(state.name);
   const [msg, setMsg] = useState('');
@@ -25,7 +27,7 @@ export default function Settings() {
     a.click(); URL.revokeObjectURL(a.href);
   };
   const google = async () => { const ok = await connectGoogle(); setMsg(ok ? 'Google est connecté.' : "La connexion n'a pas abouti."); refresh(); };
-  const wipe = () => { if (confirm('Supprimer toutes tes données sur cet appareil ?')) reset(); };
+  const wipe = () => { if (confirm(account ? 'Supprimer toutes tes données (appareil et cloud) et te déconnecter ?' : 'Supprimer toutes tes données sur cet appareil ?')) wipeAll(); };
 
   const soon = ['Google Maps et trafic', 'Banque (finance)', 'Objets connectés'];
 
@@ -39,6 +41,29 @@ export default function Settings() {
           <input id="pname" value={name} onChange={(e) => setName(e.target.value)} maxLength={30} className="min-w-0 flex-1 rounded-xl border border-line bg-ink px-4 py-2.5 outline-none focus:border-violet-500" />
           <Button onClick={() => name.trim() && update({ name: name.trim() })}>Enregistrer</Button>
         </div>
+      </section>
+
+      <h2 className="mt-2 px-5 text-lg font-bold">Compte</h2>
+      <section className={`${PANEL} mx-5 mb-4 mt-2 p-4`}>
+        {account ? (
+          <>
+            <div className="font-semibold">{account.email}</div>
+            <p className="mt-1 text-sm text-muted">
+              {sync === 'syncing' ? 'Synchronisation…' : sync === 'ok' ? 'Données sauvegardées dans le cloud.' : sync === 'error' ? 'Synchronisation impossible pour le moment. Tes données restent sur ce téléphone.' : 'Connecté.'}
+            </p>
+            <div className="mt-3"><Button kind="ghost" onClick={() => logout()}>Me déconnecter</Button></div>
+          </>
+        ) : state.mode === 'demo' ? (
+          <p className="text-sm text-muted">Quitte la démo pour créer un compte.</p>
+        ) : showAcc ? (
+          <AccountForm defaultName={state.name} onBack={() => setShowAcc(false)} />
+        ) : (
+          <>
+            <div className="font-semibold">Sauvegarde ton hexagone</div>
+            <p className="mt-1 text-sm text-muted">Crée un compte pour retrouver tes données sur tous tes appareils.</p>
+            <div className="mt-3"><Button onClick={() => setShowAcc(true)}>Créer un compte</Button></div>
+          </>
+        )}
       </section>
 
       {!standalone && (installEvt || isIOS) && (

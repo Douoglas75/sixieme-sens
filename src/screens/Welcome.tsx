@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Sparkles, Smartphone, Globe } from 'lucide-react';
+import { Sparkles, Smartphone, Globe, Cloud } from 'lucide-react';
 import { useApp, demoState, connectGoogle } from '../store';
 import { PANEL } from '../ui';
+import AccountForm from './AccountForm';
 
 export default function Welcome() {
   const { update } = useApp();
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [view, setView] = useState<'main' | 'account'>('main');
   const ready = name.trim().length > 0;
 
   const start = (mode: 'local' | 'google') => update({ onboarded: true, mode, name: name.trim() });
@@ -28,11 +30,18 @@ export default function Welcome() {
         Six domaines de ta vie suivis ensemble : santé, finance, social, cognitif, carrière et administratif.
       </p>
 
+      {view === 'account' ? (
+        <div className="mt-8"><AccountForm defaultName={name} onBack={() => setView('main')} /></div>
+      ) : (<>
       <label className="mt-8 block text-sm font-semibold" htmlFor="name">Comment t'appelles-tu ?</label>
       <input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={30} placeholder="Ton prénom"
         className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 outline-none focus:border-violet-500" />
 
       <div className="mt-5 space-y-3">
+        <button onClick={() => setView('account')} className={`${PANEL} flex w-full items-center gap-4 border-violet-500/50 p-4 text-left`}>
+          <Cloud className="text-violet-300" />
+          <span><span className="block font-semibold">Créer un compte ou me connecter</span><span className="text-sm text-muted">Tes données te suivent sur tous tes appareils.</span></span>
+        </button>
         <button disabled={!ready} onClick={() => start('local')} className={`${PANEL} flex w-full items-center gap-4 p-4 text-left disabled:opacity-40`}>
           <Smartphone className="text-violet-400" />
           <span><span className="block font-semibold">Commencer sur cet appareil</span><span className="text-sm text-muted">Sans compte. Tes données restent sur ce téléphone.</span></span>
@@ -47,6 +56,7 @@ export default function Welcome() {
         </button>
       </div>
       {err && <p role="alert" className="mt-3 text-sm text-red-300">{err}</p>}
+      </>)}
       <p className="mt-8 text-center text-xs text-muted">
         Tes check-ins sont enregistrés localement. Rien n'est vendu ni partagé.
       </p>

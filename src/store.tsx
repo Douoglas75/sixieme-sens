@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import { sb, pullCloud, pushCloud, wipeCloud, Cloud } from './cloud';
 
 export const DOMAINS = [
   { id: 'sante', label: 'Santé', emoji: '🏥', color: '#34d399' },
@@ -81,9 +82,34 @@ export function insights(s: State): Insight[] {
   return out;
 }
 
-interface Ctx { state: State; update: (p: Partial<State>) => void; reset: () => void }
+export type SyncState = 'idle' | 'syncing' | 'ok' | 'error';
+export interface Account { id: string; email: string }
+interface Ctx {
+  state: State; update: (p: Partial<State>) => void; reset: () => void;
+  account: Account | null; sync: SyncState; logout: () => Promise<void>; wipeAll: () => Promise<void>;
+}
 const AppCtx = createContext<Ctx>(null as any);
 export const useApp = () => useContext(AppCtx);
+
+function mergeState(local: State, cloud: Cloud, email: string): State {
+  const days = new Map<string, CheckIn>();
+  local.checkins.forEach((c) => days.set(c.date, c));
+  cloud.checkins.forEach((c) => days.set(c.date, c));
+  const contacts = new Map<string, Contact>();
+  local.contacts.forEach((c) => contacts.set(c.id, c));
+  cloud.contacts.forEach((c) => contacts.set(c.id, c));
+  let focus = local.focus;
+  if (cloud.focus && (cloud.focus.date > focus.date || (cloud.focus.date === focus.date && cloud.focus.minutes > focus.minutes))) focus = cloud.focus;
+  return {
+    ...local,
+    onboarded: true,
+    mode: local.mode === 'google' ? 'google' : 'local',
+    name: local.name || cloud.name || email.split('@')[0],
+    checkins: [...days.values()].sort((x, y) => x.date.localeCompare(y.date)).slice(-90),
+    contacts: [...contacts.values()],
+    focus,
+  };
+}
 
 export function Provider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>(() => {
@@ -92,10 +118,55 @@ export function Provider({ children }: { children: ReactNode }) {
       return raw ? { ...empty(), ...JSON.parse(raw) } : empty();
     } catch { return empty(); }
   });
+  const [account, setAccount] = useState<Account | null>(null);
+  const [sync, setSync] = useState<SyncState>('idle');
+  const [ready, setReady] = useState(false);
+  const synced = useRef(false);
+
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }, [state]);
+
+  // Session Supabase
+  useEffect(() => {
+    const toAcc = (u: any): Account | null => (u ? { id: u.id, email: u.email || '' } : null);
+    sb.auth.getSession().then(({ data }) => setAccount(toAcc(data.session?.user)));
+    const { data } = sb.auth.onAuthStateChange((_e, session) => {
+      const a = toAcc(session?.user);
+      setAccount(a);
+      if (!a) { synced.current = false; setReady(false); setSync('idle'); }
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  // Première synchro : on fusionne ce qu'il y a sur l'appareil et dans le cloud
+  useEffect(() => {
+    if (!account || synced.current || state.mode === 'demo') return;
+    synced.current = true;
+    setSync('syncing');
+    pullCloud(account.id)
+      .then((cloud) => { setState((s) => mergeState(s, cloud, account.email)); setReady(true); })
+      .catch(() => { synced.current = false; setSync('error'); });
+  }, [account]);
+
+  // Ensuite : envoi automatique après chaque changement
+  useEffect(() => {
+    if (!account || !ready || state.mode === 'demo') return;
+    const t = setTimeout(async () => {
+      setSync('syncing');
+      try { await pushCloud(account.id, state); setSync('ok'); } catch { setSync('error'); }
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [state, account, ready]);
+
   const update = (p: Partial<State>) => setState((s) => ({ ...s, ...p }));
   const reset = () => { try { localStorage.removeItem(KEY); } catch {} setState(empty()); };
-  return <AppCtx.Provider value={{ state, update, reset }}>{children}</AppCtx.Provider>;
+  const logout = async () => { setReady(false); await sb.auth.signOut(); reset(); };
+  const wipeAll = async () => {
+    setReady(false);
+    if (account) { try { await wipeCloud(account.id); } catch {} await sb.auth.signOut(); }
+    reset();
+  };
+
+  return <AppCtx.Provider value={{ state, update, reset, account, sync, logout, wipeAll }}>{children}</AppCtx.Provider>;
 }
 
 export interface AppsStatus { google: boolean; spotify: boolean; weather: boolean; plaid: boolean }
