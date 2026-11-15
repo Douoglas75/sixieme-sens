@@ -70,12 +70,38 @@ export default function Home({ goto }: { goto: (t: Tab) => void }) {
     );
   };
 
+  const act = (i: { id: string }) =>
+    i.id === 'ci' ? <div className="mt-3"><Button onClick={() => setSheet(true)}>Faire mon check-in</Button></div>
+    : i.id.startsWith('c') ? <div className="mt-3"><Button kind="ghost" onClick={() => goto('social')}>Voir mes relations</Button></div>
+    : null;
+  const tone = (t: string) => (t === 'warn' ? '#f59e0b' : t === 'good' ? '#34d399' : '#60a5fa');
+  const top = list[0];
+
   return (
     <>
       <div className="px-5 pt-5">
         <h1 className="text-2xl font-extrabold tracking-tight">Bonjour {state.name}</h1>
         <p className="text-sm capitalize text-muted">{date}</p>
       </div>
+
+
+      <section className="mx-5 mt-4 rounded-2xl bg-gradient-to-br from-violet-600/40 to-blue-500/30 p-[1px]" aria-label="Priorité du jour">
+        <div className="rounded-2xl bg-panel p-4">
+          <div className="text-xs font-semibold text-violet-300">Ta priorité du jour</div>
+          {top ? (
+            <>
+              <div className="mt-1 text-lg font-bold">{top.title}</div>
+              <p className="mt-1 text-sm text-muted">{top.text}</p>
+              {act(top)}
+            </>
+          ) : (
+            <>
+              <div className="mt-1 text-lg font-bold">Tout va bien aujourd'hui</div>
+              <p className="mt-1 text-sm text-muted">Rien d'urgent. Profite de ta journée.</p>
+            </>
+          )}
+        </div>
+      </section>
 
       <section className={`${PANEL} mx-5 mt-4 px-4 pb-5 pt-3`} aria-label="Score de vie">
         <Hexagon scores={last ? last.scores : null} />
@@ -118,19 +144,20 @@ export default function Home({ goto }: { goto: (t: Tab) => void }) {
         {wxMsg && <p className="mt-2 text-xs text-amber-200">{wxMsg}</p>}
       </div>
 
-      <h2 className="mt-6 px-5 text-lg font-bold">Anticipations</h2>
-      <div className="mt-2 space-y-3">
-        {list.length === 0 ? (
-          <Empty icon="🌙" title="Rien à signaler" text="Tout est calme. Continue tes check-ins pour affiner les alertes." />
-        ) : list.map((i) => (
-          <div key={i.id} className={`${PANEL} mx-5 border-l-4 p-4`} style={{ borderLeftColor: i.tone === 'warn' ? '#f59e0b' : i.tone === 'good' ? '#34d399' : '#60a5fa' }}>
-            <div className="font-semibold">{i.title}</div>
-            <p className="mt-1 text-sm text-muted">{i.text}</p>
-            {i.id === 'ci' && <div className="mt-3"><Button onClick={() => setSheet(true)}>Faire mon check-in</Button></div>}
-            {i.id.startsWith('c') && i.id !== 'ci' && <div className="mt-3"><Button kind="ghost" onClick={() => goto('social')}>Voir mes relations</Button></div>}
+      {list.length > 1 && (
+        <>
+          <h2 className="mt-6 px-5 text-lg font-bold">À surveiller</h2>
+          <div className="mt-2 space-y-3">
+            {list.slice(1).map((i) => (
+              <div key={i.id} className={`${PANEL} mx-5 border-l-4 p-4`} style={{ borderLeftColor: tone(i.tone) }}>
+                <div className="font-semibold">{i.title}</div>
+                <p className="mt-1 text-sm text-muted">{i.text}</p>
+                {act(i)}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
       {sheet && <CheckInSheet onClose={() => setSheet(false)} />}
     </>
   );
