@@ -3,6 +3,7 @@ import { Footprints, CloudSun, X } from 'lucide-react';
 import { DOMAINS, Scores, Tab, useApp, useApps, latest, average, insights, isoDay } from '../store';
 import { Hexagon, PANEL, Button, Empty } from '../ui';
 import { shareScore } from '../share';
+import { dayTips, Wx } from '../day';
 
 function CheckInSheet({ onClose }: { onClose: () => void }) {
   const { state, update } = useApp();
@@ -41,7 +42,7 @@ export default function Home({ goto }: { goto: (t: Tab) => void }) {
   const { apps } = useApps();
   const [sheet, setSheet] = useState(false);
   const [steps, setSteps] = useState<number | null>(null);
-  const [wx, setWx] = useState<{ t: number; d: string; city: string } | null>(null);
+  const [wx, setWx] = useState<Wx | null>(null);
   const [wxMsg, setWxMsg] = useState('');
   const [shareMsg, setShareMsg] = useState('');
 
@@ -64,13 +65,18 @@ export default function Home({ goto }: { goto: (t: Tab) => void }) {
           const r = await fetch(`/api/data/weather?lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
           if (!r.ok) return setWxMsg("La météo n'est pas encore configurée sur le serveur.");
           const j = await r.json();
-          setWx({ t: Math.round(j.main.temp), d: j.weather?.[0]?.description || '', city: j.name || '' });
+          setWx({ t: Math.round(j.main.temp), d: j.weather?.[0]?.description || '', city: j.name || '', kind: j.weather?.[0]?.main || '' });
         } catch { setWxMsg('Météo indisponible pour le moment.'); }
       },
       () => setWxMsg("Autorise la localisation pour voir la météo."),
       { timeout: 8000 }
     );
   };
+
+  useEffect(() => {
+    (navigator as any).permissions?.query({ name: 'geolocation' }).then((p: any) => { if (p.state === 'granted') loadWeather(); }).catch(() => {});
+  }, []);
+  const tips = dayTips(wx, last?.scores);
 
   const act = (i: { id: string }) =>
     i.id === 'ci' ? <div className="mt-3"><Button onClick={() => setSheet(true)}>Faire mon check-in</Button></div>
@@ -140,15 +146,21 @@ export default function Home({ goto }: { goto: (t: Tab) => void }) {
         </div>
       )}
 
-      <div className={`${PANEL} mx-5 mt-4 p-4`}>
+      <section className={`${PANEL} mx-5 mt-4 p-4`} aria-label="Ta journée">
         <div className="flex items-center gap-3">
           <CloudSun className="text-sky-300" />
-          {wx ? <div><div className="font-semibold">{wx.t}°C, {wx.d}</div><div className="text-xs text-muted">{wx.city}</div></div>
-            : <div className="flex-1"><div className="font-semibold">Météo autour de toi</div><div className="text-xs text-muted">Position utilisée seulement à ta demande.</div></div>}
-          {!wx && <Button kind="ghost" onClick={loadWeather}>Afficher</Button>}
+          {wx
+            ? <div className="flex-1"><div className="font-semibold">{wx.t}°C, {wx.d}</div><div className="text-xs text-muted">{wx.city}</div></div>
+            : <div className="flex-1"><div className="font-semibold">Ta journée</div><div className="text-xs text-muted">Active la météo pour des conseils adaptés. Ta position n'est utilisée que pour ça.</div></div>}
+          {!wx && <Button kind="ghost" onClick={loadWeather}>Activer</Button>}
         </div>
         {wxMsg && <p className="mt-2 text-xs text-amber-200">{wxMsg}</p>}
-      </div>
+        {tips.length > 0 && (
+          <ul className="mt-3 space-y-2 border-t border-line pt-3">
+            {tips.map((t) => <li key={t} className="flex gap-2 text-sm"><span aria-hidden>💡</span><span>{t}</span></li>)}
+          </ul>
+        )}
+      </section>
 
       {list.length > 1 && (
         <>
